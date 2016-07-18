@@ -340,7 +340,7 @@ function LoadTweets(req, res) {
 
                                                         if (!done) {
 
-                                                            CreateTicket("twitter", company, tenant, item.id_str, ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
+                                                            CreateTicket("twitter", item.id_str, result.profile, company, tenant,  ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
 
                                                                 if (done) {
 
@@ -377,7 +377,7 @@ function LoadTweets(req, res) {
                                                     /////////////////////////////////////////////create ticket directly//////////////////////////
                                                     //CreateTicket("sms",sessionid,sessiondata["CompanyId"],sessiondata["TenantId"],smsData["type"], smsData["subject"], smsData["description"],smsData["priority"],smsData["tags"],function(success, result){});
 
-                                                    CreateTicket("twitter", company, tenant, item.id_str, ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
+                                                    CreateTicket("twitter", item.id_str,result.profile,company, tenant, ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
 
                                                         if (done) {
 
@@ -486,17 +486,32 @@ function ReplyTweet(req, res){
 
                             if (isSuccess) {
 
-                                jsonString = messageFormatter.FormatMessage(undefined, "Tweets successfully replied", true, result);
+
+
+                                CreateComment(company, tenant,req.params.tid, result, function (done) {
+
+                                    if(done){
+
+                                        jsonString = messageFormatter.FormatMessage(undefined, "Tweets successfully replied and comment created", true, result);
+                                        res.end(jsonString);
+
+                                    }else{
+
+                                        jsonString = messageFormatter.FormatMessage(undefined, "Tweets successfully replied and comment failed", true, result);
+                                        res.end(jsonString);
+                                    }
+
+                                });
+
 
 
 
                             } else {
 
                                 logger.error("Tweet reply failed ");
+                                res.end(jsonString);
                             }
 
-
-                            res.end(jsonString);
                         })
 
 

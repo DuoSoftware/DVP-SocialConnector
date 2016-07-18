@@ -92,7 +92,7 @@ function CreateComment(company, tenant, engid, engagement, cb){
 
 
         request({
-            method: "POST",
+            method: "PUT",
             url: url,
             headers: {
                 authorization: "Bearer " + config.Services.accessToken,
@@ -178,7 +178,7 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
     }
 };
 
-function CreateTicket(channel,session, company, tenant, type, subjecct, description, priority, tags, cb){
+function CreateTicket(channel,session,profile, company, tenant, type, subjecct, description, priority, tags, cb){
 
     if((config.Services && config.Services.ticketServiceHost && config.Services.ticketServicePort && config.Services.ticketServiceVersion)) {
 
@@ -195,6 +195,7 @@ function CreateTicket(channel,session, company, tenant, type, subjecct, descript
             "description": description,
             "priority": priority,
             "status": "new",
+            "requester":profile,
             "engagement_session": session,
             "channel": channel,
             "tags": tags,
@@ -207,7 +208,7 @@ function CreateTicket(channel,session, company, tenant, type, subjecct, descript
             method: "POST",
             url: ticketURL,
             headers: {
-                authorization: token,
+                authorization: "bearer "+config.Services.accessToken,
                 companyinfo: format("{0}:{1}", tenant, company)
             },
             json: ticketData
@@ -217,7 +218,7 @@ function CreateTicket(channel,session, company, tenant, type, subjecct, descript
 
                 if (!_error && _response && _response.statusCode == 200 && _response.body && _response.body.IsSuccess) {
 
-                    return cb(true, response.body.reference);
+                    return cb(true, _response.body.reference);
 
                 }else{
 
