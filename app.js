@@ -69,6 +69,9 @@ server.get('DVP/API/:version/Social/Twitter/:id/tweets', authorization({resource
 server.get('DVP/API/:version/Social/RouteMessage', authorization({resource:"social", action:"write"}), twitterService.CreateTwitterAccount);
 server.post('DVP/API/:version/Social/Twitter/:id/tweets/:tid', authorization({resource:"social", action:"write"}), twitterService.ReplyTweet);
 server.del('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"delete"}), twitterService.DeleteTwitterAccount);
+server.put('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"write"}), twitterService.UpdateTwitterAccount);
+
+
 
 
 
