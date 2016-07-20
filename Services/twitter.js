@@ -130,6 +130,57 @@ function DeleteTwitterAccount(req,res){
 
 };
 
+function GetTwitterAccount(req,res){
+
+
+    logger.debug("DVP-SocialConnector.GetTwitterAccount Internal method ");
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+    Twitter.findOne({_id: req.params.id,company: company, tenant: tenant}, function(err, twitter) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Get Twitter account failed", false, undefined);
+        }else{
+            if(twitter) {
+                jsonString = messageFormatter.FormatMessage(undefined, "Get Twitter account Success", true, twitter);
+            }else{
+
+                jsonString = messageFormatter.FormatMessage(undefined, "No Twitter account found", false, undefined);
+            }
+        }
+        res.end(jsonString);
+    });
+
+};
+
+
+function GetTwitterAccounts(req,res){
+
+
+    logger.debug("DVP-SocialConnector.GetTwitterAccounts Internal method ");
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+    Twitter.find({company: company, tenant: tenant}, function(err, twitter) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Get Twitter accounts failed", false, undefined);
+        }else{
+            if(twitter && twitter.length > 0) {
+                jsonString = messageFormatter.FormatMessage(undefined, "Get Twitter accounts Success", true, twitter);
+            }else{
+
+                jsonString = messageFormatter.FormatMessage(undefined, "No Twitter account found", false, undefined);
+            }
+        }
+        res.end(jsonString);
+    });
+
+};
+
+
+
 function LoadTwitterMessages(req, res) {
 
 
@@ -549,3 +600,5 @@ module.exports.CreateComment = CreateComment;
 module.exports.DeleteTwitterAccount = DeleteTwitterAccount;
 module.exports.CreateTicket = CreateTicket;
 module.exports.UpdateTwitterAccount = UpdateTwitterAccount;
+module.exports.GetTwitterAccount = GetTwitterAccount;
+module.exports.GetTwitterAccounts = GetTwitterAccounts;

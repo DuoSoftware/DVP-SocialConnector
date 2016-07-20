@@ -7,6 +7,7 @@ var mongoose = require('mongoose');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var twitterService = require('./Services/twitter');
+var emailService = require('./Services/mail');
 var request = require("request");
 var format = require("stringformat");
 var validator = require('validator');
@@ -66,10 +67,19 @@ mongoose.connect(connectionstring);
 server.post('DVP/API/:version/Social/Twitter', authorization({resource:"social", action:"write"}), twitterService.CreateTwitterAccount);
 server.post('DVP/API/:version/Social/Twitter/:id/directmessages', authorization({resource:"social", action:"read"}), twitterService.LoadTwitterMessages);
 server.get('DVP/API/:version/Social/Twitter/:id/tweets', authorization({resource:"social", action:"read"}), twitterService.LoadTweets);
+server.get('DVP/API/:version/Social/Twitters', authorization({resource:"social", action:"read"}), twitterService.GetTwitterAccounts);
+server.get('DVP/API/:version/Social/Twitter/:id/', authorization({resource:"social", action:"read"}), twitterService.GetTwitterAccount);
 server.get('DVP/API/:version/Social/RouteMessage', authorization({resource:"social", action:"write"}), twitterService.CreateTwitterAccount);
 server.post('DVP/API/:version/Social/Twitter/:id/tweets/:tid', authorization({resource:"social", action:"write"}), twitterService.ReplyTweet);
 server.del('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"delete"}), twitterService.DeleteTwitterAccount);
 server.put('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"write"}), twitterService.UpdateTwitterAccount);
+
+
+server.post('DVP/API/:version/Social/Email', authorization({resource:"social", action:"write"}), emailService.CreateMailAccount);
+server.get('DVP/API/:version/Social/Emails', authorization({resource:"social", action:"read"}), emailService.GetEmailAccount);
+server.get('DVP/API/:version/Social/Email/:id/', authorization({resource:"social", action:"read"}), emailService.GetEmailAccounts);
+server.del('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"delete"}), emailService.DeleteEmailAccount);
+server.put('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"write"}), emailService.UpdateEmailAccount);
 
 
 
