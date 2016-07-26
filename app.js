@@ -8,6 +8,7 @@ var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var twitterService = require('./Services/twitter');
 var emailService = require('./Services/mail');
+var smsService = require('./Services/sms');
 var request = require("request");
 var format = require("stringformat");
 var validator = require('validator');
@@ -21,6 +22,9 @@ var requestType = config.Host.RequestType;
 var serverID = config.Host.ServerID;
 var token  = config.Services.accessToken;
 
+
+var smsAsync = require('./Services/sms-amqp');
+var twitterAsync = require('./Services/twitter-amqp');
 
 var server = restify.createServer({
     name: "DVP Engagement Service"
@@ -80,6 +84,11 @@ server.get('DVP/API/:version/Social/Emails', authorization({resource:"social", a
 server.get('DVP/API/:version/Social/Email/:id/', authorization({resource:"social", action:"read"}), emailService.GetEmailAccounts);
 server.del('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"delete"}), emailService.DeleteEmailAccount);
 server.put('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"write"}), emailService.UpdateEmailAccount);
+
+
+
+server.post('DVP/API/:version/Social/SMS', authorization({resource:"social", action:"write"}), smsService.SendSMS);
+
 
 
 
