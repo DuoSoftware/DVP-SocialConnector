@@ -12,6 +12,7 @@ var smsService = require('./Services/sms');
 var request = require("request");
 var format = require("stringformat");
 var validator = require('validator');
+var fb = require('./Services/FacebookClient');
 
 var util = require('util');
 var port = config.Host.port || 3000;
@@ -168,3 +169,13 @@ function RegisterARDS() {
 
  });
 
+
+/*-----------------------------Facebook------------------------------------------*/
+server.get('DVP/API/:version/Social/fb/wall/posts', authorization({
+    resource: "ticket",
+    action: "read"
+}), fb.GetFbPostList);
+
+
+
+/*-----------------------------Facebook------------------------------------------*/
