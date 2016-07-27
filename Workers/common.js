@@ -157,7 +157,7 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
 
             try {
 
-                if (!_error && _response && _response.statusCode == 200, _response.body && _response.body.IsSuccess) {
+                if (!_error && _response && _response.statusCode == 200&& _response.body && _response.body.IsSuccess) {
 
                     return cb(true,_response.body.Result);
 
