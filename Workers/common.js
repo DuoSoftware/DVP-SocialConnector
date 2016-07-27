@@ -238,7 +238,7 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
     }
 }
 
-function RegisterCronJob(company, tenant, time, id, cb){
+function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
     if((config.Services && config.Services.cronurl && config.Services.cronport && config.Services.cronversion)) {
 
@@ -246,14 +246,6 @@ function RegisterCronJob(company, tenant, time, id, cb){
         var cronURL = format("http://{0}/DVP/API/{1}/Cron", config.Services.cronurl, config.Services.cronversion);
         if (validator.isIP(config.Services.cronurl))
             cronURL = format("http://{0}:{1}/DVP/API/{2}/Cron", config.Services.cronurl, config.Services.cronport, config.Services.cronversion);
-
-
-        var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,id);
-
-        if (validator.isIP(config.LBServer.ip))
-            mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,id);
-
-
 
         var engagementData =  {
 
@@ -278,7 +270,7 @@ function RegisterCronJob(company, tenant, time, id, cb){
 
             try {
 
-                if (!_error && _response && _response.statusCode == 200, _response.body && _response.body.IsSuccess) {
+                if (!_error && _response && _response.statusCode == 200&& _response.body && _response.body.IsSuccess) {
 
                     return cb(true,_response.body.Result);
 
@@ -298,7 +290,7 @@ function RegisterCronJob(company, tenant, time, id, cb){
         });
     }
 
-};
+}
 
 
 module.exports.AddToRequest = AddToRequest;

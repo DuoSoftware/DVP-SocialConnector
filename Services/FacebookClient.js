@@ -11,7 +11,11 @@ var async = require("async");
 var moment = require('moment');
 var config = require('config');
 var socialConnector = require('../models/SocialConnector');
-
+var AddToRequest = require('../Workers/common').AddToRequest;
+var CreateComment = require('../Workers/common').CreateComment;
+var CreateEngagement = require('../Workers/common').CreateEngagement;
+/*var CreateTicket = require('../Workers/common').CreateTicket;*/
+var RegisterCronJob = require('../Workers/common').RegisterCronJob;
 
 /*var authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkdW9vd25lciIsImp0aSI6IjI1NmZhMjNiLTQ3YTAtNDU0NS05ZGYxLTAxMWIwZDdjYWViOSIsInN1YiI6IkFjY2VzcyBjbGllbnQiLCJleHAiOjIwNjg1ODA5MjIsInRlbmFudCI6MSwiY29tcGFueSI6MTAzLCJhdWQiOiJteWFwcCIsImNvbnRleHQiOnt9LCJzY29wZSI6W3sicmVzb3VyY2UiOiJ0aWNrZXQiLCJhY3Rpb25zIjpbInJlYWQiLCJ3cml0ZSIsImRlbGV0ZSJdfSx7InJlc291cmNlIjoic2xhIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX0seyJyZXNvdXJjZSI6InRyaWdnZXJzIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX1dLCJpYXQiOjE0Njc5NzYxMjJ9.05YMBXY5PgTJZpY6qJA0YVgeXtND0aMiCU85fvOvDJc";*/
 var authorization;
@@ -561,7 +565,7 @@ var processFacebookWallData = function (fbData) {
 
 };
 
-function RegisterCronJob(company, tenant, time, id, cb) {
+/*function RegisterCronJob(company, tenant, time, id, cb) {
 
     if ((config.Services && config.Services.cronurl && config.Services.cronport && config.Services.cronversion)) {
 
@@ -581,7 +585,7 @@ function RegisterCronJob(company, tenant, time, id, cb) {
 
             Reference: id,
             Description: "Direct message twitter",
-            CronePattern: format("*/{0} * * * * *", time),
+            CronePattern: format("*!/{0} * * * * *", time),
             CallbackURL: mainServer,
             CallbackData: ""
 
@@ -733,4 +737,4 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             }
         });
     }
-};
+};*/
