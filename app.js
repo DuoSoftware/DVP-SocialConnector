@@ -171,8 +171,23 @@ function RegisterARDS() {
 
 
 /*-----------------------------Facebook------------------------------------------*/
+
+server.post('DVP/API/:version/Social/Facebook', authorization({resource:"social", action:"write"}), fb.CreateFacebookAccount);
+
+server.del('DVP/API/:version/Social/Facebook/:id', authorization({resource:"social", action:"write"}), fb.DeleteFacebookAccount);
+
+server.post('DVP/API/:version/Social/Facebook/:id/wallpost', authorization({resource:"social", action:"write"}), fb.PostToWall);
+
+server.del('DVP/API/:version/Social/Facebook/:id/item/:itemid', authorization({resource:"social", action:"write"}), fb.RemoveItem);
+
+server.post('DVP/API/:version/Social/Facebook/:id/comment/:objectid', authorization({resource:"social", action:"write"}), fb.MakeCommentsToWallPost);
+
+server.get('DVP/API/:version/Social/Facebook/:id/comments/:objectid', authorization({resource:"social", action:"write"}), fb.GetComments);
+
+server.get('DVP/API/:version/Social/Facebook/:id/comments/:objectid/toplevel', authorization({resource:"social", action:"write"}), fb.GetTopLevelComments);
+
 server.get('DVP/API/:version/Social/fb/wall/posts', authorization({
-    resource: "ticket",
+    resource: "social",
     action: "read"
 }), fb.GetFbPostList);
 

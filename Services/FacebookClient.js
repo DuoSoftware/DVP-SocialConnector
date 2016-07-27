@@ -10,20 +10,402 @@ var SocialConnector = require('dvp-mongomodels/model/SocialConnector').SocialCon
 var async = require("async");
 var moment = require('moment');
 var config = require('config');
+var socialConnector = require('../models/SocialConnector');
 
-var baseUrl = "https://graph.facebook.com/v2.7/";
 
 /*var authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkdW9vd25lciIsImp0aSI6IjI1NmZhMjNiLTQ3YTAtNDU0NS05ZGYxLTAxMWIwZDdjYWViOSIsInN1YiI6IkFjY2VzcyBjbGllbnQiLCJleHAiOjIwNjg1ODA5MjIsInRlbmFudCI6MSwiY29tcGFueSI6MTAzLCJhdWQiOiJteWFwcCIsImNvbnRleHQiOnt9LCJzY29wZSI6W3sicmVzb3VyY2UiOiJ0aWNrZXQiLCJhY3Rpb25zIjpbInJlYWQiLCJ3cml0ZSIsImRlbGV0ZSJdfSx7InJlc291cmNlIjoic2xhIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX0seyJyZXNvdXJjZSI6InRyaWdnZXJzIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX1dLCJpYXQiOjE0Njc5NzYxMjJ9.05YMBXY5PgTJZpY6qJA0YVgeXtND0aMiCU85fvOvDJc";*/
 var authorization;
 
-module.exports.GetFbPostList = function (req, res) {
+module.exports.CreateFacebookAccount = function (req, res) {
+    logger.info("DVP-SocialConnector.CreateFacebookAccount Internal method ");
 
+    var profile = req.body;
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    socialConnector.findOne({'_id': profile.id}, function (err, user) {
 
-    logger.info("DVP-LiteTicket.GetFbPostList Internal method ");
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            jsonString = messageFormatter.FormatMessage(undefined, "Invalid Connector Setting. All ready Added.", false, user);
+            res.end(jsonString);
+        }
+        else {
+            // if there is no user found with that facebook id, create them
+            var newUser = new socialConnector();
+
+            // set all of the facebook information in our user model
+            newUser._id = profile.id; // set the users facebook id
+            newUser.fb = {};
+            newUser.fb.status = true;
+            newUser.fb.access_token = profile.access_token; // we will save the token that facebook provides to the user
+            newUser.fb.firstName = profile.firstName;
+            newUser.fb.lastName = profile.lastName; // look at the passport user profile to see how names are returned
+            newUser.fb.email = profile.email; // facebook can return multiple emails so we'll take the first
+            newUser.fb.clientID = profile.appID; // facebook can return multiple emails so we'll take the first
+            newUser.fb.clientSecret = profile.appSecret; // facebook can return multiple emails so we'll take the first
+            newUser.company = company; // facebook can return multiple emails so we'll take the first
+            newUser.tenant = tenant; // facebook can return multiple emails so we'll take the first
+
+            // save our user to the database
+            newUser.save(function (err) {
+                if (err) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+                    // if successful, return the new user
+                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Added", true, undefined);
+                    res.end(jsonString);
+                }
+            });
+        }
+
+    });
+};
+
+module.exports.DeleteFacebookAccount = function (req, res) {
+    logger.info("DVP-SocialConnector.CreateFacebookAccount Internal method ");
+
+    var profile = req.body;
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    socialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+
+            user.update({
+                "$set": {
+                    "fb.status": false
+                }
+            }, function (err) {
+                if (err) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+                    // if successful, return the new user
+                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Removed.", true, undefined);
+                    res.end(jsonString);
+                }
+            });
+
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(undefined, "Fail To Find Connector.", false, user);
+            res.end(jsonString);
+        }
+
+    });
+};
+
+module.exports.PostToWall = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    authorization = req.headers['authorization'];
+    socialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            var propertiesObject = {
+                access_token: user.fb.access_token,
+                message: req.body.message
+            };
+            var options = {
+                method: 'POST',
+                uri: config.Services.facebookUrl + 'me/feed',
+                qs: propertiesObject,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+
+                    if (response.statusCode == 200) {
+                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, body);
+                        res.end(jsonString);
+                    }
+                    else {
+                        jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
+                        res.end(jsonString);
+                    }
+                }
+            });
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(new Error("Fail To Find Configuration Setting."), "Fail To Find Configuration Setting.", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
+
+};
+
+module.exports.RemoveItem = function (req, res) {
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            var propertiesObject = {
+                access_token: user.fb.access_token
+            };
+            var options = {
+                method: 'DELETE',
+                uri: config.Services.facebookUrl + req.params.itemid,
+                qs: propertiesObject,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+
+                    if (response.statusCode == 200) {
+                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully Delete.", true, body);
+                        res.end(jsonString);
+                    }
+                    else {
+                        jsonString = messageFormatter.FormatMessage(body, "Fail To Delete.", false, undefined);
+                        res.end(jsonString);
+                    }
+                }
+            });
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(new Error("Fail To Find Configuration Setting."), "Fail To Find Configuration Setting.", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
+
+};
+
+module.exports.MakeCommentsToWallPost = function (req, res) {
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            var propertiesObject = {
+                access_token: user.fb.access_token
+            };
+            var options = {
+                method: 'post',
+                uri: config.Services.facebookUrl + req.params.objectid+'/comments',
+                qs: propertiesObject,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+
+                    if (response.statusCode == 200) {
+                        jsonString = messageFormatter.FormatMessage(undefined, "Comment Successfully.", true, body);
+                        res.end(jsonString);
+                    }
+                    else {
+                        jsonString = messageFormatter.FormatMessage(body, "Fail To Make Comment.", false, undefined);
+                        res.end(jsonString);
+                    }
+                }
+            });
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(new Error("Fail To Find Configuration Setting."), "Fail To Find Configuration Setting.", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
+
+};
+
+module.exports.GetTopLevelComments = function (req, res) {
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            var propertiesObject = {
+                access_token: user.fb.access_token,
+                filter:'toplevel'
+            };
+            var options = {
+                method: 'get',
+                uri: config.Services.facebookUrl + req.params.objectid+'/comments',
+                qs: propertiesObject,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+
+                    if (response.statusCode == 200) {
+                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully.", true, body);
+                        res.end(jsonString);
+                    }
+                    else {
+                        jsonString = messageFormatter.FormatMessage(body, "Fail To Get Top Level Comments.", false, undefined);
+                        res.end(jsonString);
+                    }
+                }
+            });
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(new Error("Fail To Find Configuration Setting."), "Fail To Find Configuration Setting.", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
+
+};
+
+module.exports.GetComments = function (req, res) {
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            var propertiesObject = {
+                access_token: user.fb.access_token,
+                filter:'stream',
+                order:'reverse_chronological'
+            };
+            var options = {
+                method: 'get',
+                uri: config.Services.facebookUrl + req.params.objectid+'/comments',
+                qs: propertiesObject,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+
+                    if (response.statusCode == 200) {
+                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully.", true, body);
+                        res.end(jsonString);
+                    }
+                    else {
+                        jsonString = messageFormatter.FormatMessage(body, "Fail To Get Comments.", false, undefined);
+                        res.end(jsonString);
+                    }
+                }
+            });
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(new Error("Fail To Find Configuration Setting."), "Fail To Find Configuration Setting.", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
+
+};
+
+
+
+module.exports.GetFbPostList = function (req, res) {
+    logger.info("DVP-SocialConnector.GetFbPostList Internal method ");
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
     var jsonString;
     SocialConnector.find({company: company, tenant: tenant}, function (err, fbConnectors) {
         if (err) {
@@ -47,7 +429,7 @@ module.exports.GetFbPostList = function (req, res) {
                         };
                         var options = {
                             method: 'GET',
-                            uri: baseUrl + item.fb.pageID + '/feed',
+                            uri: config.Services.facebookUrl + item.fb.pageID + '/feed',
                             qs: propertiesObject,
                             headers: {
                                 'Content-Type': 'application/json',
@@ -104,6 +486,7 @@ module.exports.GetFbPostList = function (req, res) {
     });
 };
 
+
 var processFacebookWallData = function (fbData) {
 
     if (fbData) {
@@ -158,7 +541,6 @@ var processFacebookWallData = function (fbData) {
                         });
 
 
-
                     });
                 }
             }
@@ -179,9 +561,9 @@ var processFacebookWallData = function (fbData) {
 
 };
 
-function RegisterCronJob(company, tenant, time, id, cb){
+function RegisterCronJob(company, tenant, time, id, cb) {
 
-    if((config.Services && config.Services.cronurl && config.Services.cronport && config.Services.cronversion)) {
+    if ((config.Services && config.Services.cronurl && config.Services.cronport && config.Services.cronversion)) {
 
 
         var cronURL = format("http://{0}/DVP/API/{1}/Cron", config.Services.cronurl, config.Services.cronversion);
@@ -189,18 +571,17 @@ function RegisterCronJob(company, tenant, time, id, cb){
             cronURL = format("http://{0}:{1}/DVP/API/{2}/Cron", config.Services.cronurl, config.Services.cronport, config.Services.cronversion);
 
 
-        var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,id);
+        var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, id);
 
         if (validator.isIP(config.LBServer.ip))
-            mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,id);
+            mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, id);
 
 
-
-        var engagementData =  {
+        var engagementData = {
 
             Reference: id,
             Description: "Direct message twitter",
-            CronePattern: format( "*/{0} * * * * *",time),
+            CronePattern: format("*/{0} * * * * *", time),
             CallbackURL: mainServer,
             CallbackData: ""
 
@@ -211,7 +592,7 @@ function RegisterCronJob(company, tenant, time, id, cb){
             method: "POST",
             url: cronURL,
             headers: {
-                authorization: "bearer "+token,
+                authorization: "bearer " + token,
                 companyinfo: format("{0}:{1}", tenant, company)
             },
             json: engagementData
@@ -221,19 +602,19 @@ function RegisterCronJob(company, tenant, time, id, cb){
 
                 if (!_error && _response && _response.statusCode == 200, _response.body && _response.body.IsSuccess) {
 
-                    cb(true,_response.body.Result);
+                    cb(true, _response.body.Result);
 
-                }else{
+                } else {
 
                     logger.error("There is an error in  cron registration for this");
-                    cb(false,{});
+                    cb(false, {});
 
 
                 }
             }
             catch (excep) {
 
-                cb(false,{});
+                cb(false, {});
 
             }
         });
