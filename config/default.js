@@ -40,6 +40,7 @@ module.exports = {
     "port": "4647",
     "smsQueueName": "SMSOUT",
     'twitterQueueName': "TWEETOUT",
+    'facebookQueueName': "FACEBOOKOUT",
     "version": "1.0"
   },
 
@@ -109,7 +110,7 @@ module.exports = {
 
     "interactionurl": "127.0.0.1",
     "interactionport": '3637',
-    "interactionversion":"1.0.0.0",
+    "interactionversion":"1.0",
 
 
     "cronurl": "192.168.0.27",

@@ -188,7 +188,7 @@ server.get('DVP/API/:version/Social/Facebook/:id/comments/:objectid/toplevel', a
 
 server.get('DVP/API/:version/Social/fb/wall/posts', authorization({resource: "social",action: "read"}), fb.GetFbsPostList);
 
-server.get('DVP/API/:version/Social/fb/:id/wall/posts', authorization({resource: "social",action: "read"}), fb.GetFbPostList);
+server.get('DVP/API/:version/Social/fb/:id/wall/posts', authorization({resource: "ticket",action: "read"}), fb.GetFbPostList);
 
 
 
