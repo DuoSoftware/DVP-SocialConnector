@@ -42,7 +42,7 @@ function SendRequest(company, tenant, mailoptions, cb){
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){
 
-                                    CreateComment('sms','text',company, tenant, mailoptions.reply_session, result, function (done) {
+                                    CreateComment('sms','text',company, tenant, mailoptions.reply_session, undefined,result, function (done) {
                                         if (!done) {
                                             logger.debug("comment created successfully");
                                             return cb(true);

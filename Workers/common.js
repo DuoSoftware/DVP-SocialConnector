@@ -63,13 +63,13 @@ function AddToRequest(company, tenant,session_id, priority, otherInfo, attribute
 
 };
 
-function CreateComment(channel, channeltype, company, tenant, engid, engagement, cb){
+function CreateComment(channel, channeltype, company, tenant, engid, author, engagement, cb){
 
     //http://localhost:3636/DVP/API/1.0.0.0/TicketByEngagement/754236638146859008/Comment
 
     if (config.Services && config.Services.ticketServiceHost && config.Services.ticketServicePort && config.Services.ticketServiceVersion) {
 
-        var url = format("http://{0}/DVP/API/{1}/TicketByEngagement/{2}/Comment", config.Services.ticketServiceHost, config.Services.ticketServiceVersion,engagement._id);
+        var url = format("http://{0}/DVP/API/{1}/TicketByEngagement/{2}/Comment", config.Services.ticketServiceHost, config.Services.ticketServiceVersion,engid);
         if (validator.isIP(config.Services.ticketServiceHost))
             url = format("http://{0}:{1}/DVP/API/{2}/TicketByEngagement/{3}/Comment", config.Services.ticketServiceHost, config.Services.ticketServicePort,config.Services.ticketServiceVersion, engid);
 
@@ -83,6 +83,7 @@ function CreateComment(channel, channeltype, company, tenant, engid, engagement,
             type: channeltype,
             public: true,
             channel: channel,
+            author: author,
             channel_from: engagement.channel_from,
             engagement_session: engagement.engagement_id,
             author_external: engagement.profile_id
@@ -117,6 +118,57 @@ function CreateComment(channel, channeltype, company, tenant, engid, engagement,
             catch (excep) {
 
                 logger.error("Comment creation Failed "+excep);
+                return cb(false);
+            }
+
+        });
+
+    }
+
+};
+
+function UpdateComment(tenant, company, cid,eid, cb){
+
+    //http://localhost:3636/DVP/API/1.0.0.0/TicketByEngagement/754236638146859008/Comment
+///DVP/API/:version/Ticket/Comment/:id
+    if (config.Services && config.Services.ticketServiceHost && config.Services.ticketServicePort && config.Services.ticketServiceVersion) {
+
+        var url = format("http://{0}/DVP/API/{1}/Ticket/Comment/{2}", config.Services.ticketServiceHost, config.Services.ticketServiceVersion,cid);
+        if (validator.isIP(config.Services.ticketServiceHost))
+            url = format("http://{0}:{1}/DVP/API/{2}/Ticket/Comment/{3}", config.Services.ticketServiceHost, config.Services.ticketServicePort,config.Services.ticketServiceVersion, cid);
+
+
+        var data = {
+            engagement_session: eid
+        };
+
+
+        request({
+            method: "PUT",
+            url: url,
+            headers: {
+                authorization: "Bearer " + config.Services.accessToken,
+                companyinfo: format("{0}:{1}", tenant, company)
+            },
+            json: data
+        }, function (_error, _response, datax) {
+
+            try {
+
+                if (!_error && _response && _response.statusCode == 200) {
+
+                    logger.debug("Successfully updated the comment");
+                    return cb(true);
+                } else {
+
+                    logger.error("Comment update Failed "+_error);
+                    return cb(false);
+
+                }
+            }
+            catch (excep) {
+
+                logger.error("Comment update Failed "+excep);
                 return cb(false);
             }
 
@@ -251,7 +303,7 @@ function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
             Reference: id,
             Description: "Direct message twitter",
-            CronePattern: format( "*/{0} * * * * *",time),
+            CronePattern: format( "* */{0} * * * *",time),
             CallbackURL: mainServer,
             CallbackData: ""
 
@@ -298,3 +350,4 @@ module.exports.CreateComment = CreateComment;
 module.exports.CreateEngagement = CreateEngagement;
 module.exports.CreateTicket = CreateTicket;
 module.exports.RegisterCronJob = RegisterCronJob;
+module.exports.UpdateComment = UpdateComment;
