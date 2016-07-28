@@ -59,7 +59,6 @@ function CreateTwitterAccount(req, res) {
 
             var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,id);
 
-            RegisterCronJob(company,tenant,5,req.body.id,function(isSuccess){
             if (validator.isIP(config.LBServer.ip))
                 mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,id);
 
