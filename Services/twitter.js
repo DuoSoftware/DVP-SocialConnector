@@ -58,7 +58,7 @@ function CreateTwitterAccount(req, res) {
         } else {
 
 
-            RegisterCronJob(company,tenant,10,req.body.id,function(isSuccess){
+            RegisterCronJob(company,tenant,5,req.body.id,function(isSuccess){
 
                 if(isSuccess) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, engage);
@@ -351,30 +351,30 @@ function LoadTweets(req, res) {
                                     res.end(jsonString);
                                 } else {
                                     logger.debug("Update since id successfully");
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter process done ", true, undefined);
+                                    res.end(jsonString);
                                     //////////////////////////////////////////////////////////////////////////////////////////////////////
                                     tweets.forEach(function (item) {
                                         CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, function (isSuccess, result) {
                                             if (isSuccess) {
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
                                                 if(item.in_reply_to_status_id_str) {
-                                                    CreateComment('twitter','tweets',company, tenant,item.in_reply_to_status_id_str, result, function (done) {
+                                                    CreateComment('twitter','tweets',company, tenant,item.in_reply_to_status_id_str, undefined,result, function (done) {
                                                         if (!done) {
 
                                                             CreateTicket("twitter", item.id_str, result.profile, company, tenant,  ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
                                                                 if (done) {
-                                                                    logger.info("Add Request completed ");
-                                                                    jsonString = messageFormatter.FormatMessage(undefined, "Add Request completed", true, undefined);
-                                                                    res.end(jsonString);
+                                                                    logger.info("Twitter Ticket Added successfully " + item.id_str);
+
                                                                 } else {
 
-                                                                    logger.error("Add Request failed " + item.id);
-                                                                    jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
-                                                                    res.end(jsonString);
+                                                                    logger.error("Create Ticket failed " + item.id);
+
                                                                 }
                                                             });
                                                         }else{
-                                                            jsonString = messageFormatter.FormatMessage(undefined, "Add Comment completed", false, undefined);
-                                                            res.end(jsonString);
+
+                                                            logger.info("Twitter Comment Added successfully " + item.id_str);
                                                         }
                                                     })
                                                 }else {
@@ -385,17 +385,13 @@ function LoadTweets(req, res) {
                                                         if (done) {
 
 
-                                                            logger.info("Add Request completed ");
-
-                                                            jsonString = messageFormatter.FormatMessage(undefined, "Add Request completed", true, undefined);
-                                                            res.end(jsonString);
+                                                            logger.info("Twitter Ticket Added successfully " + item.id_str);
 
 
                                                         } else {
 
                                                             logger.error("Add Request failed " + item.id);
-                                                            jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
-                                                            res.end(jsonString);
+
                                                         }
                                                     });
                                                 }
@@ -404,8 +400,7 @@ function LoadTweets(req, res) {
                                             } else {
 
                                                 logger.error("Create engagement failed " + item.id);
-                                                jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
-                                                res.end(jsonString);
+
                                             }
                                         })
                                     });
@@ -461,7 +456,7 @@ function ReplyTweet(req, res){
                         CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, req.body.message, function (isSuccess, result) {
 
                             if (isSuccess) {
-                                CreateComment('twitter','out_tweets',company, tenant,req.params.tid, result, function (done) {
+                                CreateComment('twitter','out_tweets',company, tenant,req.params.tid, undefined,result, function (done) {
                                     if(done){
                                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets successfully replied and comment created", true, result);
                                     }else{
@@ -495,12 +490,8 @@ function ReplyTweet(req, res){
 module.exports.CreateTwitterAccount = CreateTwitterAccount;
 module.exports.LoadTwitterMessages = LoadTwitterMessages;
 module.exports.LoadTweets = LoadTweets;
-module.exports.AddToRequest = AddToRequest;
-module.exports.CreateEngagement = CreateEngagement;
 module.exports.ReplyTweet = ReplyTweet;
-module.exports.CreateComment = CreateComment;
 module.exports.DeleteTwitterAccount = DeleteTwitterAccount;
-module.exports.CreateTicket = CreateTicket;
 module.exports.UpdateTwitterAccount = UpdateTwitterAccount;
 module.exports.GetTwitterAccount = GetTwitterAccount;
 module.exports.GetTwitterAccounts = GetTwitterAccounts;

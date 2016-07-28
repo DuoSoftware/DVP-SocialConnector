@@ -5,6 +5,7 @@ var format = require("stringformat");
 var CreateEngagement = require('../Workers/common').CreateEngagement;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateTicket = require('../Workers/common').CreateTicket;
+var UpdateComment = require('../Workers/common').UpdateComment;
 var config = require('config');
 var validator = require('validator');
 var dust = require('dustjs-linkedin');
@@ -32,7 +33,7 @@ queueConnection.on('ready', function () {
             prefetchCount: 10
         }, function (message, headers, deliveryInfo, ack) {
 
-            message = JSON.parse(message.data.toString());
+            //message = JSON.parse(message.data.toString());
 
             if (!message || !message.to || !message.from || !message.body || !message.company || !message.tenant) {
                 console.log('Invalid message, skipping');
@@ -80,7 +81,7 @@ function SendRequest(company, tenant, mailoptions, cb){
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){
 
-                                    CreateComment('sms','text',company, tenant, mailoptions.reply_session, result, function (done) {
+                                    CreateComment('sms','text',company, tenant, mailoptions.reply_session, mailoptions.author,result, function (done) {
                                         if (!done) {
                                             logger.error("comment creation failed");
                                             return cb(true);
@@ -93,28 +94,25 @@ function SendRequest(company, tenant, mailoptions, cb){
                                 else {
 
 
-                                    if(mailoptions.ticket){
+                                    if (mailoptions.ticket) {
 
                                         var ticket_type = 'action';
                                         var ticket_priority = 'low';
                                         var ticket_tags = [];
 
-                                       if( mailoptions.ticket_type)
-                                       {
-                                           ticket_type = mailoptions.ticket_type;
-                                       }
+                                        if (mailoptions.ticket_type) {
+                                            ticket_type = mailoptions.ticket_type;
+                                        }
 
-                                        if( mailoptions.ticket_priority)
-                                        {
+                                        if (mailoptions.ticket_priority) {
                                             ticket_priority = mailoptions.ticket_priority;
                                         }
 
-                                        if( mailoptions.ticket_tags)
-                                        {
+                                        if (mailoptions.ticket_tags) {
                                             ticket_tags = mailoptions.ticket_tags;
                                         }
 
-                                        CreateTicket("sms", sessionid, result.profile, company, tenant, ticket_type , mailoptions.text, mailoptions.text, ticket_priority, ticket_tags, function (done) {
+                                        CreateTicket("sms", sessionid, result.profile, company, tenant, ticket_type, mailoptions.text, mailoptions.text, ticket_priority, ticket_tags, function (done) {
                                             if (done) {
                                                 logger.info("Create Ticket Completed ");
                                             } else {
@@ -122,12 +120,27 @@ function SendRequest(company, tenant, mailoptions, cb){
                                             }
                                             return cb(true);
                                         });
-                                    }else{
+                                    } else {
 
-                                        logger.info("Send SMS Completed ");
-                                        return cb(true);
+                                        if (mailoptions.comment) {
+
+                                            UpdateComment(mailoptions.comment, sessionid, function (done) {
+                                                if (done) {
+                                                    logger.info("Update Comment Completed ");
+
+                                                } else {
+
+                                                    logger.error("Update Comment Failed ");
+
+                                                }
+
+                                                return cb(true);
+                                            });
+
+                                        } else {
+                                            return cb(true);
+                                        }
                                     }
-
 
                                 }
                             } else {
@@ -176,6 +189,8 @@ function SendSMS(message, deliveryInfo, ack) {
         to: message.to,
         text: message.body,
         ticket: message.ticket,
+        comment: message.comment,
+        author: message.author,
         reply_session: message.reply_session,
         ticket_type : message.ticket_type,
         ticket_priority : message.ticket_priority,

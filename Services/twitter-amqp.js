@@ -5,6 +5,7 @@ var format = require("stringformat");
 var CreateEngagement = require('../Workers/common').CreateEngagement;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateTicket = require('../Workers/common').CreateTicket;
+var UpdateComment = require('../Workers/common').UpdateComment;
 var config = require('config');
 var validator = require('validator');
 var dust = require('dustjs-linkedin');
@@ -36,7 +37,7 @@ queueConnection.on('ready', function () {
             prefetchCount: 10
         }, function (message, headers, deliveryInfo, ack) {
 
-            message = JSON.parse(message.data.toString());
+            //message = JSON.parse(message.data.toString());
 
             if (!message || !message.to || !message.from ||  !message.body || !message.company || !message.tenant) {
                 console.log('Invalid message, skipping');
@@ -84,7 +85,7 @@ function SendRequest(company, tenant, twitteroptions, cb){
 
                             if (isSuccess) {
                                 if(twitteroptions.reply_session) {
-                                    CreateComment('twitter', 'out_tweets', company, tenant, twitteroptions.reply_session, result, function (done) {
+                                    CreateComment('twitter', 'out_tweets', company, tenant, twitteroptions.reply_session, twitteroptions.author,result, function (done) {
                                         if (done) {
 
                                             logger.info("Tweet Reply Success with comment ");
@@ -134,6 +135,26 @@ function SendRequest(company, tenant, twitteroptions, cb){
 
                                             return cb(true);
                                         });
+                                    }else{
+
+                                        if(twitteroptions.comment){
+
+                                            UpdateComment(tenant, company, twitteroptions.comment,tweets.id_str, function (done) {
+                                                if (done) {
+                                                    logger.info("Update Comment Completed ");
+
+                                                } else {
+
+                                                    logger.error("Update Comment Failed ");
+
+                                                }
+
+                                                return cb(true);
+                                            });
+
+                                        }else {
+                                            return cb(true);
+                                        }
                                     }
                                 }
                             } else {
@@ -177,6 +198,8 @@ function SendTweet(message, deliveryInfo, ack) {
         to: message.to,
         text: message.body,
         ticket: message.ticket,
+        comment: message.comment,
+        author: message.author,
         reply_session: message.reply_session,
         ticket_type : message.ticket_type,
         ticket_priority : message.ticket_priority,
