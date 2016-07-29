@@ -62,10 +62,10 @@ var setup_server = function (server) {
 
     server.get('/facebook', function(req, res) {
         if (
-            req.param('hub.mode') == 'subscribe' &&
-            req.param('hub.verify_token') == 'token'
+            req.params.hub.mode == 'subscribe' &&
+            req.params.hub.verify_token == 'token'
         ) {
-            res.send(req.param('hub.challenge'));
+            res.send(req.params.hub.challenge);
         } else {
             res.send(400);
         }
