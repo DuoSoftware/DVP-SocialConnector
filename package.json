@@ -12,6 +12,7 @@
     "dvp-mongomodels": "^1.4.8",
     "fbgraph": "^1.2.0",
     "format": "^0.2.2",
+    "fs": "0.0.2",
     "juice": "^2.0.0",
     "moment": "^2.14.1",
     "mongoose": "^4.5.4",
