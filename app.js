@@ -63,10 +63,10 @@ var setup_server = function (server) {
         if (req.params.hub.mode.toString() == 'subscribe' && req.params.hub.verify_token.toString() == 'DuoS123')
         {
             var chg =parseInt(req.params.hub.challenge);
-            res.send(chg);
+            res.end(chg);
         } else {
             console.log("Error");
-            res.send(400);
+            res.end(400);
         }
     });
 
