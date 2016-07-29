@@ -38,7 +38,7 @@ var https_options = {
 };
 
 // Instantiate our two servers
-var http_server = restify.createServer({
+var server = restify.createServer({
  name: "DVP Engagement Service"
 });
 
@@ -53,7 +53,6 @@ var setup_server = function(server) {
 
  server.use(restify.CORS());
  server.use(restify.fullResponse());
- server.use(jwt({secret: secret.Secret}));
 
  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,54 +71,61 @@ var setup_server = function(server) {
   }
  });
 
- server.post('DVP/API/:version/Social/Twitter', authorization({resource:"social", action:"write"}), twitterService.CreateTwitterAccount);
- server.post('DVP/API/:version/Social/Twitter/:id/directmessages', authorization({resource:"social", action:"read"}), twitterService.LoadTwitterMessages);
- server.get('DVP/API/:version/Social/Twitter/:id/tweets', authorization({resource:"social", action:"read"}), twitterService.LoadTweets);
- server.get('DVP/API/:version/Social/Twitters', authorization({resource:"social", action:"read"}), twitterService.GetTwitterAccounts);
- server.get('DVP/API/:version/Social/Twitter/:id/', authorization({resource:"social", action:"read"}), twitterService.GetTwitterAccount);
- server.get('DVP/API/:version/Social/RouteMessage', authorization({resource:"social", action:"write"}), twitterService.CreateTwitterAccount);
- server.post('DVP/API/:version/Social/Twitter/:id/tweets/:tid', authorization({resource:"social", action:"write"}), twitterService.ReplyTweet);
- server.del('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"delete"}), twitterService.DeleteTwitterAccount);
- server.put('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"write"}), twitterService.UpdateTwitterAccount);
+
+};
+
+// Now, setup both servers in one step
+setup_server(https_server);
+
+server.pre(restify.pre.userAgentConnection());
+server.use(restify.bodyParser({ mapParams: false }));
+
+server.use(restify.CORS());
+server.use(restify.fullResponse());
+server.use(jwt({secret: secret.Secret}));
+
+server.post('DVP/API/:version/Social/Twitter', authorization({resource:"social", action:"write"}), twitterService.CreateTwitterAccount);
+server.post('DVP/API/:version/Social/Twitter/:id/directmessages', authorization({resource:"social", action:"read"}), twitterService.LoadTwitterMessages);
+server.get('DVP/API/:version/Social/Twitter/:id/tweets', authorization({resource:"social", action:"read"}), twitterService.LoadTweets);
+server.get('DVP/API/:version/Social/Twitters', authorization({resource:"social", action:"read"}), twitterService.GetTwitterAccounts);
+server.get('DVP/API/:version/Social/Twitter/:id/', authorization({resource:"social", action:"read"}), twitterService.GetTwitterAccount);
+server.get('DVP/API/:version/Social/RouteMessage', authorization({resource:"social", action:"write"}), twitterService.CreateTwitterAccount);
+server.post('DVP/API/:version/Social/Twitter/:id/tweets/:tid', authorization({resource:"social", action:"write"}), twitterService.ReplyTweet);
+server.del('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"delete"}), twitterService.DeleteTwitterAccount);
+server.put('DVP/API/:version/Social/Twitter/:id', authorization({resource:"social", action:"write"}), twitterService.UpdateTwitterAccount);
 
 
- server.post('DVP/API/:version/Social/Email', authorization({resource:"social", action:"write"}), emailService.CreateMailAccount);
- server.get('DVP/API/:version/Social/Emails', authorization({resource:"social", action:"read"}), emailService.GetEmailAccount);
- server.get('DVP/API/:version/Social/Email/:id/', authorization({resource:"social", action:"read"}), emailService.GetEmailAccounts);
- server.del('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"delete"}), emailService.DeleteEmailAccount);
- server.put('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"write"}), emailService.UpdateEmailAccount);
- server.post('DVP/API/:version/Social/SMS', authorization({resource:"social", action:"write"}), smsService.SendSMS);
+server.post('DVP/API/:version/Social/Email', authorization({resource:"social", action:"write"}), emailService.CreateMailAccount);
+server.get('DVP/API/:version/Social/Emails', authorization({resource:"social", action:"read"}), emailService.GetEmailAccount);
+server.get('DVP/API/:version/Social/Email/:id/', authorization({resource:"social", action:"read"}), emailService.GetEmailAccounts);
+server.del('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"delete"}), emailService.DeleteEmailAccount);
+server.put('DVP/API/:version/Social/Email/:id', authorization({resource:"social", action:"write"}), emailService.UpdateEmailAccount);
+server.post('DVP/API/:version/Social/SMS', authorization({resource:"social", action:"write"}), smsService.SendSMS);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
- /*-----------------------------Facebook------------------------------------------*/
+/*-----------------------------Facebook------------------------------------------*/
 
- server.post('DVP/API/:version/Social/Facebook', authorization({resource:"social", action:"write"}), fb.CreateFacebookAccount);
+server.post('DVP/API/:version/Social/Facebook', authorization({resource:"social", action:"write"}), fb.CreateFacebookAccount);
 
- server.del('DVP/API/:version/Social/Facebook/:id', authorization({resource:"social", action:"write"}), fb.DeleteFacebookAccount);
+server.del('DVP/API/:version/Social/Facebook/:id', authorization({resource:"social", action:"write"}), fb.DeleteFacebookAccount);
 
- server.post('DVP/API/:version/Social/Facebook/:id/wallpost', authorization({resource:"social", action:"write"}), fb.PostToWall);
+server.post('DVP/API/:version/Social/Facebook/:id/wallpost', authorization({resource:"social", action:"write"}), fb.PostToWall);
 
- server.del('DVP/API/:version/Social/Facebook/:id/item/:itemid', authorization({resource:"social", action:"write"}), fb.RemoveItem);
+server.del('DVP/API/:version/Social/Facebook/:id/item/:itemid', authorization({resource:"social", action:"write"}), fb.RemoveItem);
 
- server.post('DVP/API/:version/Social/Facebook/:id/comment/:objectid', authorization({resource:"social", action:"write"}), fb.MakeCommentsToWallPost);
+server.post('DVP/API/:version/Social/Facebook/:id/comment/:objectid', authorization({resource:"social", action:"write"}), fb.MakeCommentsToWallPost);
 
- server.get('DVP/API/:version/Social/Facebook/:id/comments/:objectid', authorization({resource:"social", action:"write"}), fb.GetComments);
+server.get('DVP/API/:version/Social/Facebook/:id/comments/:objectid', authorization({resource:"social", action:"write"}), fb.GetComments);
 
- server.get('DVP/API/:version/Social/Facebook/:id/comments/:objectid/toplevel', authorization({resource:"social", action:"write"}), fb.GetTopLevelComments);
+server.get('DVP/API/:version/Social/Facebook/:id/comments/:objectid/toplevel', authorization({resource:"social", action:"write"}), fb.GetTopLevelComments);
 
- server.get('DVP/API/:version/Social/fb/wall/posts', authorization({resource: "social",action: "read"}), fb.GetFbsPostList);
+server.get('DVP/API/:version/Social/fb/wall/posts', authorization({resource: "social",action: "read"}), fb.GetFbsPostList);
 
- server.get('DVP/API/:version/Social/fb/:id/wall/posts', authorization({resource: "ticket",action: "read"}), fb.GetFbPostList);
+server.get('DVP/API/:version/Social/fb/:id/wall/posts', authorization({resource: "ticket",action: "read"}), fb.GetFbPostList);
 
-
-};
-
-// Now, setup both servers in one step
-setup_server(http_server);
-setup_server(https_server);
 
 
 https_server.listen(443, function() {
@@ -127,8 +133,8 @@ https_server.listen(443, function() {
 });
 
 // Start our servers to listen on the appropriate ports
-http_server.listen(port, function() {
- logger.info("DVP-LiteTicket.main Server %s listening at %s", http_server.name, http_server.url);
+server.listen(port, function() {
+ logger.info("DVP-LiteTicket.main Server %s listening at %s", server.name, server.url);
  RegisterARDS();
 });
 
