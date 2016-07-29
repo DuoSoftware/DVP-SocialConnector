@@ -65,7 +65,8 @@ var setup_server = function (server) {
             req.params.hub.mode == 'subscribe' &&
             req.params.hub.verify_token == 'token'
         ) {
-            res.send(parseInt(req.params.hub.challenge));
+            var tt = parseInt(req.params.hub.challenge.toString());
+            res.send(req.params.hub.challenge.toString());
         } else {
             res.send(400);
         }
