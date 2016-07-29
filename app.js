@@ -58,6 +58,10 @@ var setup_server = function(server) {
  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
  server.get('/facebook', function(req, res) {
+  console.log("Facebook Callback........");
+  console.log(req.param('hub.mode'));
+  console.log(req.query);
+  console.log("Facebook Callback........");
   if (
       req.param('hub.mode') == 'subscribe' &&
       req.param('hub.verify_token') == 'DuoS123'
