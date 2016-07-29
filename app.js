@@ -50,7 +50,7 @@ var setup_server = function(server) {
 
  server.pre(restify.pre.userAgentConnection());
  server.use(restify.bodyParser({ mapParams: false }));
-
+ server.use(restify.queryParser());
  server.use(restify.CORS());
  server.use(restify.fullResponse());
 
@@ -59,7 +59,8 @@ var setup_server = function(server) {
  server.get('/facebook', function(req, res) {
   console.log("Facebook Callback........");
   console.log(req.param('hub.mode'));
-  console.log(req.query);
+  console.log(req.getQuery());
+  console.log(req.params.hub.mode);
   console.log("Facebook Callback........");
   if (
       req.param('hub.mode') == 'subscribe' &&
