@@ -60,7 +60,7 @@ var setup_server = function (server) {
         res.send('It works!');
     });
 
-    server.get(['/facebook', '/instagram'], function(req, res) {
+    server.get('/facebook', function(req, res) {
         if (
             req.param('hub.mode') == 'subscribe' &&
             req.param('hub.verify_token') == 'token'
