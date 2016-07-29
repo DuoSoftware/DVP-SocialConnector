@@ -32,8 +32,9 @@ var twitterAsync = require('./Services/twitter-amqp');
 restify.CORS.ALLOW_HEADERS.push('authorization');
 // Setup some https server options
 var https_options = {
- key: fs.readFileSync('/etc/ssl/self-signed/server.txt'),
- certificate: fs.readFileSync('/etc/ssl/self-signed/STAR_duoworld_com.crt')
+ ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+ key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
+ certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
 };
 
 // Instantiate our two servers
