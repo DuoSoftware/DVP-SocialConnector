@@ -75,7 +75,7 @@ var setup_server = function (server) {
 
     server.post('/facebook', function(req, res) {
         console.log('Facebook request body:');
-        console.log(req.body);
+        console.log(JSON.stringify(req.body));
         // Process the Facebook updates here
         fb.RealTimeUpdates(req.body);
         res.send(200);

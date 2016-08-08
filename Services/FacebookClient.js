@@ -655,11 +655,11 @@ module.exports.RealTimeUpdates = function (fbData) {
             if (change.field == "feed") {
                 if (change.value.item == "status") {
                     // create ticket
-                    RealTimeCreateTicket(change.id,change.value);
+                    RealTimeCreateTicket(items.id,change.value);
                 }
                 else if (change.value.item == "comment") {
                     // add comment
-                    RealTimeComments(change.id,change.value);
+                    RealTimeComments(items.id,change.value);
                 }
             }
 
@@ -691,7 +691,7 @@ var RealTimeComments = function(id,fbData){
                     "name": fbData.firstName+" "+fbData.lastName
                 };
 
-                CreateEngagement("facebook-post", company, tenant, JSON.stringify(from), JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.comment_id, fbData.message, function (isSuccess, engagement) {
                     if (isSuccess) {
                         CreateComment('facebook-post','Comment',company, tenant,fbData.parent_id, undefined,engagement, function (done) {
                             if (!done) {
@@ -739,9 +739,10 @@ var RealTimeCreateTicket = function (id,fbData) {
                     "id": id,
                     "name": fbData.firstName+" "+fbData.lastName
                 };
-                CreateEngagement("facebook-post", company, tenant, JSON.stringify(from), JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
 
                     if (isSuccess) {
+
 
                         /*Create Tickets*/
                         var ticketData = {
@@ -756,10 +757,10 @@ var RealTimeCreateTicket = function (id,fbData) {
                             "channel": JSON.stringify(from),
                             "tags": ["complain.product.tv.display"],
                             "custom_fields": [{"field": "123", "value": "12"}],
-                            "fbComments": undefined
+
                         };
                         /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
-                        var ticketUrl = format("http://{0}:{1}/DVP/API/{2}/Ticket/Comments", config.Services.ticketServiceHost, config.Services.ticketServicePort, config.Services.ticketServiceVersion);
+                        var ticketUrl = format("http://{0}:{1}/DVP/API/{2}/Ticket", config.Services.ticketServiceHost, config.Services.ticketServicePort, config.Services.ticketServiceVersion);
 
                         var options = {
                             method: 'POST',
@@ -767,7 +768,7 @@ var RealTimeCreateTicket = function (id,fbData) {
                             headers: {
                                 Accept: 'application/json',
                                 authorization: "Bearer " + config.Services.accessToken,
-                                companyinfo: format("{0}:{1}", item.fbConnector.tenant, item.fbConnector.company)
+                                companyinfo: format("{0}:{1}", tenant, company)
                             },
                             json: ticketData
                         };
