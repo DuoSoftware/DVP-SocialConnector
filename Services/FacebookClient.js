@@ -474,7 +474,7 @@ module.exports.GetFbPostList = function (req, res) {
                             data.push(jsonResp);
 
                             jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "Process Start");
-                            if(jsonResp.data.length==0)
+                            if (jsonResp.data.length == 0)
                                 jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "No New Post.");
                             res.end(jsonString);
                             processFacebookWallData(data);
@@ -582,6 +582,213 @@ module.exports.GetFbsPostList = function (req, res) {
 
                 jsonString = messageFormatter.FormatMessage(undefined, "Fail To Find Social Connector Settings.", false, undefined);
                 res.end(jsonString);
+            }
+        }
+    });
+};
+
+module.exports.SubscribeToPage = function (req, res) {
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    SocialConnector.findOne({'_id': req.params.pageId, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            var propertiesObject = {
+                access_token: user.fb.clientID + "|" + user.fb.clientSecret,
+                fields: 'category,conversations,feed,messages',
+                object: 'page',
+                callback_url: req.params.url
+            };
+            var options = {
+                method: 'POST',
+                uri: config.Services.facebookUrl + req.params.pageId + '/subscriptions',
+                qs: propertiesObject,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+
+                    if (response.statusCode == 200) {
+                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page.", true, body);
+                        res.end(jsonString);
+                    }
+                    else {
+                        jsonString = messageFormatter.FormatMessage(body, "Fail To Subscribe.", false, undefined);
+                        res.end(jsonString);
+                    }
+                }
+            });
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(new Error("Fail To Find Configuration Setting."), "Fail To Find Configuration Setting.", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
+};
+
+module.exports.RealTimeUpdates = function (fbData) {
+
+    fbData.entry.forEach(function (items) {
+
+        items.changes.forEach(function (change) {
+
+            if (change.field == "feed") {
+                if (change.value.item == "status") {
+                    // create ticket
+                    RealTimeCreateTicket(change.id,change.value);
+                }
+                else if (change.value.item == "comment") {
+                    // add comment
+                    RealTimeComments(change.id,change.value);
+                }
+            }
+
+        });
+    });
+};
+
+var RealTimeComments = function(id,fbData){
+
+    var jsonString;
+    SocialConnector.findOne({_id: id}, function (err, fbConnector) {
+        if (err) {
+
+            jsonString = messageFormatter.FormatMessage(err, "Fail To Find Social Connector Settings.", false, undefined);
+            logger.error(jsonString);
+        }
+        else {
+            if (fbConnector) {
+                var company = parseInt(fbConnector.company);
+                var tenant = parseInt(fbConnector.tenant);
+
+                var from = {
+                    "name": fbData.sender_name,
+                    "id": fbData.sender_id
+                };
+
+                var to = {
+                    "id": id,
+                    "name": fbData.firstName+" "+fbData.lastName
+                };
+
+                CreateEngagement("facebook-post", company, tenant, JSON.stringify(from), JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
+                    if (isSuccess) {
+                        CreateComment('facebook-post','Comment',company, tenant,fbData.parent_id, undefined,engagement, function (done) {
+                            if (!done) {
+                                logger.error("Fail To Add Comments" + fbData.post_id);
+                            }else{
+
+                                logger.info("Facebook Comment Added successfully " + fbData.post_id);
+                            }
+                        })
+
+                    } else {
+
+                        logger.error("Create engagement failed " + fbData.post_id);
+
+                    }
+                })
+            }
+        }
+    });
+
+
+};
+
+var RealTimeCreateTicket = function (id,fbData) {
+
+    var jsonString;
+    SocialConnector.findOne({_id: id}, function (err, fbConnector) {
+        if (err) {
+
+            jsonString = messageFormatter.FormatMessage(err, "Fail To Find Social Connector Settings.", false, undefined);
+            logger.error(jsonString);
+        }
+        else {
+            if (fbConnector) {
+
+                var company = parseInt(fbConnector.company);
+                var tenant = parseInt(fbConnector.tenant);
+
+                var from = {
+                    "name": fbData.sender_name,
+                    "id": fbData.sender_id
+                };
+
+                var to = {
+                    "id": id,
+                    "name": fbData.firstName+" "+fbData.lastName
+                };
+                CreateEngagement("facebook-post", company, tenant, JSON.stringify(from), JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
+
+                    if (isSuccess) {
+
+                        /*Create Tickets*/
+                        var ticketData = {
+                            "type": "question",
+                            "subject": "Facebook Wall Post",
+                            "reference": fbData.id,
+                            "description": fbData.message,
+                            "priority": "normal",
+                            "status": "new",
+                            "requester": fbData.sender_id,
+                            "engagement_session": engagement.engagement_id,
+                            "channel": JSON.stringify(from),
+                            "tags": ["complain.product.tv.display"],
+                            "custom_fields": [{"field": "123", "value": "12"}],
+                            "fbComments": undefined
+                        };
+                        /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
+                        var ticketUrl = format("http://{0}:{1}/DVP/API/{2}/Ticket/Comments", config.Services.ticketServiceHost, config.Services.ticketServicePort, config.Services.ticketServiceVersion);
+
+                        var options = {
+                            method: 'POST',
+                            uri: ticketUrl,
+                            headers: {
+                                Accept: 'application/json',
+                                authorization: "Bearer " + config.Services.accessToken,
+                                companyinfo: format("{0}:{1}", item.fbConnector.tenant, item.fbConnector.company)
+                            },
+                            json: ticketData
+                        };
+
+                        request(options, function (error, response, body) {
+                            if (response.statusCode == 200) {
+                                jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page.", true, body);
+                            }
+                            else {
+                                jsonString = messageFormatter.FormatMessage(body, "Fail To Subscribe.", false, undefined);
+                            }
+
+                            logger.info("FB Real  Rime Updates: " + jsonString);
+                        });
+
+                        /*Create Tickets*/
+                    }
+                    else {
+                        logger.error("Create engagement failed " + id);
+                    }
+                });
             }
         }
     });

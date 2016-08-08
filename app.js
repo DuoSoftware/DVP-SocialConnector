@@ -77,6 +77,7 @@ var setup_server = function (server) {
         console.log('Facebook request body:');
         console.log(req.body);
         // Process the Facebook updates here
+        fb.RealTimeUpdates(req.body);
         res.send(200);
     });
 
@@ -221,10 +222,12 @@ server.get('DVP/API/:version/Social/fb/wall/posts', authorization({
     action: "read"
 }), fb.GetFbsPostList);
 
-server.get('DVP/API/:version/Social/fb/:id/wall/posts', authorization({
+server.get('DVP/API/:version/Social/fb/:id/wall/posts', authorization({resource: "ticket", action: "read"}), fb.GetFbPostList);
+
+server.post('DVP/API/:version/Social/fb/:pageId/subscribe/:verify_token/callback/:url', authorization({
     resource: "ticket",
     action: "read"
-}), fb.GetFbPostList);
+}), fb.SubscribeToPage);
 
 
 https_server.listen(443, function () {
