@@ -103,12 +103,12 @@ module.exports = {
     "accessToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdWtpdGhhIiwianRpIjoiYWEzOGRmZWYtNDFhOC00MWUyLTgwMzktOTJjZTY0YjM4ZDFmIiwic3ViIjoiNTZhOWU3NTlmYjA3MTkwN2EwMDAwMDAxMjVkOWU4MGI1YzdjNGY5ODQ2NmY5MjExNzk2ZWJmNDMiLCJleHAiOjE5MDIzODExMTgsInRlbmFudCI6LTEsImNvbXBhbnkiOi0xLCJzY29wZSI6W3sicmVzb3VyY2UiOiJhbGwiLCJhY3Rpb25zIjoiYWxsIn1dLCJpYXQiOjE0NzAzODExMTh9.AUWgOFnSFUmzu4BxXLNQML0cqgrbIj9E8zfgqHrZot4",
 
 
-    "resourceServiceHost": "resourceservice.104.131.67.21.xip.io",
+    "resourceServiceHost": "resourceservice.app.veery.cloud",
     "resourceServicePort": "8831",
     "resourceServiceVersion": "1.0.0.0",
 
 
-    "interactionurl": "127.0.0.1",
+    "interactionurl": "interactions.app.veery.cloud",
     "interactionport": '3637',
     "interactionversion":"1.0",
 
@@ -118,11 +118,11 @@ module.exports = {
     "cronversion":"1.0.0.0",
 
 
-    "ticketServiceHost": "127.0.0.1",
+    "ticketServiceHost": "liteticket.app.veery.cloud",
     "ticketServicePort": "3636",
     "ticketServiceVersion": "1.0.0.0",
 
-    "ardsServiceHost": "ardsliteservice.104.131.67.21.xip.io",
+    "ardsServiceHost": "ardsliteservice.app.veery.cloud",
     "ardsServicePort": "8831",
     "ardsServiceVersion": "1.0.0.0",
 

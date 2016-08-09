@@ -653,7 +653,7 @@ module.exports.RealTimeUpdates = function (fbData) {
         items.changes.forEach(function (change) {
 
             if (change.field == "feed") {
-                if (change.value.item == "status") {
+                if (change.value.item == "status" || change.value.item == "post") {
                     // create ticket
                     RealTimeCreateTicket(items.id,change.value);
                 }
@@ -760,7 +760,7 @@ var RealTimeCreateTicket = function (id,fbData) {
 
                         };
                         /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
-                        var ticketUrl = format("http://{0}:{1}/DVP/API/{2}/Ticket", config.Services.ticketServiceHost, config.Services.ticketServicePort, config.Services.ticketServiceVersion);
+                        var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket/Comments", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
 
                         var options = {
                             method: 'POST',
@@ -825,7 +825,7 @@ var processFacebookWallData = function (fbData) {
                                         "fbComments": wallpost.comments ? wallpost.comments.data : undefined
                                     };
                                     /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
-                                    var ticketUrl = format("http://{0}:{1}/DVP/API/{2}/Ticket/Comments", config.Services.ticketServiceHost, config.Services.ticketServicePort, config.Services.ticketServiceVersion);
+                                    var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket/Comments", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
 
                                     var options = {
                                         method: 'POST',
