@@ -760,7 +760,7 @@ var RealTimeCreateTicket = function (id,fbData) {
 
                         };
                         /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
-                        var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket/Comments", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
+                        var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
 
                         var options = {
                             method: 'POST',
@@ -775,10 +775,14 @@ var RealTimeCreateTicket = function (id,fbData) {
 
                         request(options, function (error, response, body) {
                             if (response.statusCode == 200) {
-                                jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page.", true, body);
+                                if(body.IsSuccess)
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Ticket Create Successfully.", true, undefined);
+                                else{
+                                    jsonString = messageFormatter.FormatMessage(body.Exception, "Fail To Create Ticket.", false, undefined);
+                                }
                             }
                             else {
-                                jsonString = messageFormatter.FormatMessage(body, "Fail To Subscribe.", false, undefined);
+                                jsonString = messageFormatter.FormatMessage(body, "Fail To Create Ticket.", false, undefined);
                             }
 
                             logger.info("FB Real  Rime Updates: " + jsonString);

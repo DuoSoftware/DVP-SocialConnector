@@ -118,7 +118,7 @@ module.exports = {
     "cronversion":"1.0.0.0",
 
 
-    "ticketServiceHost": "liteticket.app.veery.cloud",
+    "ticketServiceHost": "localhost:3636",
     "ticketServicePort": "3636",
     "ticketServiceVersion": "1.0.0.0",
 
