@@ -68,8 +68,8 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     res.end(jsonString);
                 }
                 else {
-                    /*DVP/API/:version/Social/fb/:id/wall/posts*/
-                    var mainServer = format("http://{0}/DVP/API/{1}/Social/fb/{2}/wall/posts", config.LBServer.ip, config.Host.version, profile.id);
+
+                    /*var mainServer = format("http://{0}/DVP/API/{1}/Social/fb/{2}/wall/posts", config.LBServer.ip, config.Host.version, profile.id);
 
                     if (validator.isIP(config.LBServer.ip))
                         mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/fb/{3}/wall/posts", config.LBServer.ip, config.LBServer.port, config.Host.version, profile.id);
@@ -84,8 +84,10 @@ module.exports.CreateFacebookAccount = function (req, res) {
                         }
                         res.end(jsonString);
 
-                    });
+                    });*/
 
+                    jsonString = messageFormatter.FormatMessage(undefined, "Facebook Saved Successfully", true, obj);
+                    res.end(jsonString);
                 }
             });
         }
@@ -607,7 +609,8 @@ module.exports.SubscribeToPage = function (req, res) {
                 access_token: user.fb.clientID + "|" + user.fb.clientSecret,
                 fields: 'category,conversations,feed,messages',
                 object: 'page',
-                callback_url: req.params.url
+                callback_url: req.body.url,
+                verify_token:req.params.verify_token
             };
             var options = {
                 method: 'POST',
@@ -628,8 +631,26 @@ module.exports.SubscribeToPage = function (req, res) {
                 else {
 
                     if (response.statusCode == 200) {
-                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page.", true, body);
-                        res.end(jsonString);
+
+                        user.update({
+                            "$set": {
+                                "subscribe": true
+                            }
+                        }, function (err, rUser) {
+                            if (err) {
+                                jsonString = messageFormatter.FormatMessage(err, "Successfully Subscribe To Page but Fail To Update Social Connector Setting.", false, undefined);
+                            }
+                            else {
+                                if (rUser) {
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page.", true, body);
+                                }
+                                else {
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page but Fail To Update Social Connector Setting.", false, undefined);
+                                }
+                            }
+                            res.end(jsonString);
+                        });
+
                     }
                     else {
                         jsonString = messageFormatter.FormatMessage(body, "Fail To Subscribe.", false, undefined);
@@ -735,10 +756,12 @@ var RealTimeCreateTicket = function (id,fbData) {
                     "id": fbData.sender_id
                 };
 
+                var name  = fbConnector.fb.firstName+" "+fbConnector.fb.lastName;
                 var to = {
                     "id": id,
-                    "name": fbData.firstName+" "+fbData.lastName
+                    "name": name
                 };
+
                 CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
 
                     if (isSuccess) {
@@ -755,8 +778,8 @@ var RealTimeCreateTicket = function (id,fbData) {
                             "requester": fbData.sender_id,
                             "engagement_session": engagement.engagement_id,
                             "channel": JSON.stringify(from),
-                            "tags": ["complain.product.tv.display"],
-                            "custom_fields": [{"field": "123", "value": "12"}],
+                            "tags": ["facebook.post.common.common",name]
+                            /*"custom_fields": [{"field": "123", "value": "12"}],*/
 
                         };
                         /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
@@ -798,7 +821,6 @@ var RealTimeCreateTicket = function (id,fbData) {
         }
     });
 };
-
 
 var processFacebookWallData = function (fbData) {
 

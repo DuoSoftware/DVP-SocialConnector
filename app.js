@@ -224,7 +224,7 @@ server.get('DVP/API/:version/Social/fb/wall/posts', authorization({
 
 server.get('DVP/API/:version/Social/fb/:id/wall/posts', authorization({resource: "ticket", action: "read"}), fb.GetFbPostList);
 
-server.post('DVP/API/:version/Social/fb/:pageId/subscribe/:verify_token/callback/:url', authorization({
+server.post('DVP/API/:version/Social/fb/:pageId/subscribe/:verify_token/callback', authorization({
     resource: "ticket",
     action: "read"
 }), fb.SubscribeToPage);
