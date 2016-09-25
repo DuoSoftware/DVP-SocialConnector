@@ -17,6 +17,7 @@ var CreateEngagement = require('../Workers/common').CreateEngagement;
 /*var CreateTicket = require('../Workers/common').CreateTicket;*/
 var RegisterCronJob = require('../Workers/common').RegisterCronJob;
 var validator = require('validator');
+var format = require("stringformat");
 /*var authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkdW9vd25lciIsImp0aSI6IjI1NmZhMjNiLTQ3YTAtNDU0NS05ZGYxLTAxMWIwZDdjYWViOSIsInN1YiI6IkFjY2VzcyBjbGllbnQiLCJleHAiOjIwNjg1ODA5MjIsInRlbmFudCI6MSwiY29tcGFueSI6MTAzLCJhdWQiOiJteWFwcCIsImNvbnRleHQiOnt9LCJzY29wZSI6W3sicmVzb3VyY2UiOiJ0aWNrZXQiLCJhY3Rpb25zIjpbInJlYWQiLCJ3cml0ZSIsImRlbGV0ZSJdfSx7InJlc291cmNlIjoic2xhIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX0seyJyZXNvdXJjZSI6InRyaWdnZXJzIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX1dLCJpYXQiOjE0Njc5NzYxMjJ9.05YMBXY5PgTJZpY6qJA0YVgeXtND0aMiCU85fvOvDJc";*/
 var authorization;
 
@@ -26,7 +27,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
     var profile = req.body;
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    socialConnector.findOne({'_id': profile.id}, function (err, user) {
+    SocialConnector.findOne({'_id': profile.id}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -43,22 +44,23 @@ module.exports.CreateFacebookAccount = function (req, res) {
         }
         else {
             // if there is no user found with that facebook id, create them
-            var newUser = new socialConnector();
+            var newUser = new SocialConnector();
 
             // set all of the facebook information in our user model
             newUser._id = profile.id; // set the users facebook id
             newUser.fb = {};
             newUser.fb.status = true;
-            newUser.fb.access_token = profile.access_token; // we will save the token that facebook provides to the user
-            newUser.fb.firstName = profile.firstName;
-            newUser.fb.lastName = profile.lastName; // look at the passport user profile to see how names are returned
-            newUser.fb.email = profile.email; // facebook can return multiple emails so we'll take the first
-            newUser.fb.clientID = profile.appID; // facebook can return multiple emails so we'll take the first
-            newUser.fb.clientSecret = profile.appSecret; // facebook can return multiple emails so we'll take the first
+            newUser.fb.access_token = profile.fb.access_token; // we will save the token that facebook provides to the user
+            newUser.fb.firstName = profile.fb.firstName;
+            newUser.fb.lastName = profile.fb.lastName; // look at the passport user profile to see how names are returned
+            newUser.fb.email = profile.fb.email; // facebook can return multiple emails so we'll take the first
+            newUser.fb.clientID = profile.fb.clientID; // facebook can return multiple emails so we'll take the first
+            newUser.fb.clientSecret = profile.fb.clientSecret; // facebook can return multiple emails so we'll take the first
             newUser.company = company; // facebook can return multiple emails so we'll take the first
             newUser.tenant = tenant; // facebook can return multiple emails so we'll take the first
             newUser.fb.lastUpdate = moment().unix();
-            newUser.fb.pageID = profile.pageID;
+            newUser.fb.pageID = profile.fb.pageID;
+            newUser.fb.ticketToPost = true;
             // save our user to the database
             newUser.save(function (err, obj) {
                 if (err) {
@@ -66,8 +68,8 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     res.end(jsonString);
                 }
                 else {
-                    /*DVP/API/:version/Social/fb/:id/wall/posts*/
-                    var mainServer = format("http://{0}/DVP/API/{1}/Social/fb/{2}/wall/posts", config.LBServer.ip, config.Host.version, profile.id);
+
+                    /*var mainServer = format("http://{0}/DVP/API/{1}/Social/fb/{2}/wall/posts", config.LBServer.ip, config.Host.version, profile.id);
 
                     if (validator.isIP(config.LBServer.ip))
                         mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/fb/{3}/wall/posts", config.LBServer.ip, config.LBServer.port, config.Host.version, profile.id);
@@ -82,8 +84,10 @@ module.exports.CreateFacebookAccount = function (req, res) {
                         }
                         res.end(jsonString);
 
-                    });
+                    });*/
 
+                    jsonString = messageFormatter.FormatMessage(undefined, "Facebook Saved Successfully", true, obj);
+                    res.end(jsonString);
                 }
             });
         }
@@ -97,7 +101,7 @@ module.exports.DeleteFacebookAccount = function (req, res) {
     var profile = req.body;
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    socialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -139,7 +143,7 @@ module.exports.PostToWall = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    socialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -196,7 +200,7 @@ module.exports.RemoveItem = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -252,7 +256,7 @@ module.exports.MakeCommentsToWallPost = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -265,7 +269,8 @@ module.exports.MakeCommentsToWallPost = function (req, res) {
         // if the user is found, then log them in
         if (user) {
             var propertiesObject = {
-                access_token: user.fb.access_token
+                access_token: user.fb.access_token,
+                message: req.body.message
             };
             var options = {
                 method: 'post',
@@ -308,7 +313,7 @@ module.exports.GetTopLevelComments = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -365,7 +370,7 @@ module.exports.GetComments = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    socialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -469,9 +474,13 @@ module.exports.GetFbPostList = function (req, res) {
                             jsonResp.statusCode = response.statusCode;
                             var data = [];
                             data.push(jsonResp);
-                            processFacebookWallData(data);
-                            jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "Process Start.");
+
+                            jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "Process Start");
+                            if (jsonResp.data.length == 0)
+                                jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "No New Post.");
                             res.end(jsonString);
+                            processFacebookWallData(data);
+
                         }
                         else {
                             jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "Fail To Start Process.");
@@ -557,13 +566,18 @@ module.exports.GetFbsPostList = function (req, res) {
                 async.parallel(asyncTasks,
                     function (err, results) {
                         if (!err) {
+                            if (results.length > 0) {
+                                jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "Process Start.123");
+                            }
+                            else {
+                                jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "No New Post.");
+                            }
+
+                            res.end(jsonString);
                             // process data and create ticket
                             processFacebookWallData(results);
                         }
                     });
-
-                jsonString = messageFormatter.FormatMessage(undefined, "EXCEPTION", true, "Process Start.");
-                res.end(jsonString);
 
 
             } else {
@@ -575,6 +589,238 @@ module.exports.GetFbsPostList = function (req, res) {
     });
 };
 
+module.exports.SubscribeToPage = function (req, res) {
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    SocialConnector.findOne({'_id': req.params.pageId, company: company, tenant: tenant}, function (err, user) {
+
+        var jsonString;
+        // if there is an error, stop everything and return that
+        // ie an error connecting to the database
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            res.end(jsonString);
+        }
+
+        // if the user is found, then log them in
+        if (user) {
+            var propertiesObject = {
+                access_token: user.fb.clientID + "|" + user.fb.clientSecret,
+                fields: 'category,conversations,feed,messages',
+                object: 'page',
+                callback_url: req.body.url,
+                verify_token:req.params.verify_token
+            };
+            var options = {
+                method: 'POST',
+                uri: config.Services.facebookUrl + req.params.pageId + '/subscriptions',
+                qs: propertiesObject,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+
+
+            request(options, function (error, response, body) {
+                if (error) {
+                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                    res.end(jsonString);
+                }
+                else {
+
+                    if (response.statusCode == 200) {
+
+                        user.update({
+                            "$set": {
+                                "subscribe": true
+                            }
+                        }, function (err, rUser) {
+                            if (err) {
+                                jsonString = messageFormatter.FormatMessage(err, "Successfully Subscribe To Page but Fail To Update Social Connector Setting.", false, undefined);
+                            }
+                            else {
+                                if (rUser) {
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page.", true, body);
+                                }
+                                else {
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Subscribe To Page but Fail To Update Social Connector Setting.", false, undefined);
+                                }
+                            }
+                            res.end(jsonString);
+                        });
+
+                    }
+                    else {
+                        jsonString = messageFormatter.FormatMessage(body, "Fail To Subscribe.", false, undefined);
+                        res.end(jsonString);
+                    }
+                }
+            });
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(new Error("Fail To Find Configuration Setting."), "Fail To Find Configuration Setting.", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
+};
+
+module.exports.RealTimeUpdates = function (fbData) {
+
+    fbData.entry.forEach(function (items) {
+
+        items.changes.forEach(function (change) {
+
+            if (change.field == "feed") {
+                if (change.value.item == "status" || change.value.item == "post") {
+                    // create ticket
+                    RealTimeCreateTicket(items.id,change.value);
+                }
+                else if (change.value.item == "comment") {
+                    // add comment
+                    RealTimeComments(items.id,change.value);
+                }
+            }
+
+        });
+    });
+};
+
+var RealTimeComments = function(id,fbData){
+
+    var jsonString;
+    SocialConnector.findOne({_id: id}, function (err, fbConnector) {
+        if (err) {
+
+            jsonString = messageFormatter.FormatMessage(err, "Fail To Find Social Connector Settings.", false, undefined);
+            logger.error(jsonString);
+        }
+        else {
+            if (fbConnector) {
+                var company = parseInt(fbConnector.company);
+                var tenant = parseInt(fbConnector.tenant);
+
+                var from = {
+                    "name": fbData.sender_name,
+                    "id": fbData.sender_id
+                };
+
+                var to = {
+                    "id": id,
+                    "name": fbData.firstName+" "+fbData.lastName
+                };
+
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.comment_id, fbData.message, function (isSuccess, engagement) {
+                    if (isSuccess) {
+                        CreateComment('facebook-post','Comment',company, tenant,fbData.parent_id, undefined,engagement, function (done) {
+                            if (!done) {
+                                logger.error("Fail To Add Comments" + fbData.post_id);
+                            }else{
+
+                                logger.info("Facebook Comment Added successfully " + fbData.post_id);
+                            }
+                        })
+
+                    } else {
+
+                        logger.error("Create engagement failed " + fbData.post_id);
+
+                    }
+                })
+            }
+        }
+    });
+
+
+};
+
+var RealTimeCreateTicket = function (id,fbData) {
+
+    var jsonString;
+    SocialConnector.findOne({_id: id}, function (err, fbConnector) {
+        if (err) {
+
+            jsonString = messageFormatter.FormatMessage(err, "Fail To Find Social Connector Settings.", false, undefined);
+            logger.error(jsonString);
+        }
+        else {
+            if (fbConnector) {
+
+                var company = parseInt(fbConnector.company);
+                var tenant = parseInt(fbConnector.tenant);
+
+                var from = {
+                    "name": fbData.sender_name,
+                    "id": fbData.sender_id
+                };
+
+                var name  = fbConnector.fb.firstName+" "+fbConnector.fb.lastName;
+                var to = {
+                    "id": id,
+                    "name": name
+                };
+
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
+
+                    if (isSuccess) {
+
+
+                        /*Create Tickets*/
+                        var ticketData = {
+                            "type": "question",
+                            "subject": "Facebook Wall Post",
+                            "reference": fbData.id,
+                            "description": fbData.message,
+                            "priority": "normal",
+                            "status": "new",
+                            "requester": fbData.sender_id,
+                            "engagement_session": engagement.engagement_id,
+                            "channel": JSON.stringify(from),
+                            "tags": ["facebook.post.common.common",name]
+                            /*"custom_fields": [{"field": "123", "value": "12"}],*/
+
+                        };
+                        /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
+                        var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
+
+                        var options = {
+                            method: 'POST',
+                            uri: ticketUrl,
+                            headers: {
+                                Accept: 'application/json',
+                                authorization: "Bearer " + config.Services.accessToken,
+                                companyinfo: format("{0}:{1}", tenant, company)
+                            },
+                            json: ticketData
+                        };
+
+                        request(options, function (error, response, body) {
+                            if (response.statusCode == 200) {
+                                if(body.IsSuccess)
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Ticket Create Successfully.", true, undefined);
+                                else{
+                                    jsonString = messageFormatter.FormatMessage(body.Exception, "Fail To Create Ticket.", false, undefined);
+                                }
+                            }
+                            else {
+                                jsonString = messageFormatter.FormatMessage(body, "Fail To Create Ticket.", false, undefined);
+                            }
+
+                            logger.info("FB Real  Rime Updates: " + jsonString);
+                        });
+
+                        /*Create Tickets*/
+                    }
+                    else {
+                        logger.error("Create engagement failed " + id);
+                    }
+                });
+            }
+        }
+    });
+};
 
 var processFacebookWallData = function (fbData) {
 
@@ -585,7 +831,7 @@ var processFacebookWallData = function (fbData) {
                 if (item.data) {
                     item.data.forEach(function (wallpost) {
                         createTicketTasks.push(function (callback) {
-                            CreateEngagement("facebook", item.fbConnector.company, item.fbConnector.tenant, JSON.stringify(wallpost.from), JSON.stringify(wallpost.to), "inbound", wallpost.id, wallpost.message, function (isSuccess, engagement) {
+                            CreateEngagement("facebook-post", item.fbConnector.company, item.fbConnector.tenant, wallpost.from.id, JSON.stringify(wallpost.to), "inbound", wallpost.id, wallpost.message, function (isSuccess, engagement) {
 
                                 if (isSuccess) {
 
@@ -602,7 +848,7 @@ var processFacebookWallData = function (fbData) {
                                         "channel": JSON.stringify(wallpost.from),
                                         "tags": ["complain.product.tv.display"],
                                         "custom_fields": [{"field": "123", "value": "12"}],
-                                        "fbComments": wallpost.comments.data
+                                        "fbComments": wallpost.comments ? wallpost.comments.data : undefined
                                     };
                                     /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
                                     var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket/Comments", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
@@ -615,7 +861,7 @@ var processFacebookWallData = function (fbData) {
                                             authorization: "Bearer " + config.Services.accessToken,
                                             companyinfo: format("{0}:{1}", item.fbConnector.tenant, item.fbConnector.company)
                                         },
-                                        body: JSON.stringify(ticketData)
+                                        json: ticketData
                                     };
 
                                     request(options, function (error, response, body) {
