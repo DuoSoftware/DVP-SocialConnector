@@ -81,7 +81,7 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
             body: engagement.body,
             body_type: "text",
             type: channeltype,
-            public: true,
+            public: 'public',
             channel: channel,
             author: author,
             channel_from: engagement.channel_from,

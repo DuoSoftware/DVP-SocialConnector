@@ -41,7 +41,7 @@ queueConnection.on('ready', function () {
 
             if (!message || !message.to || !message.from ||  !message.body || !message.company || !message.tenant) {
                 console.log('Invalid message, skipping');
-                return ack.reject();
+                return ack.acknowledge();
             }
             ///////////////////////////create body/////////////////////////////////////////////////
 
@@ -61,7 +61,10 @@ function SendRequest(company, tenant, twitteroptions, cb){
     logger.debug("DVP-SocialConnector.ReplyTweet Internal method ");
 
 
-    Twitter.findOne({company: company, tenant: tenant, name: twitteroptions.from}, function(err, twitter) {
+
+    var obj = {$and:[{company: company, tenant: tenant}, {$or: [{name: twitteroptions.from}, {screen_name: twitteroptions.from}]}]};
+
+    Twitter.findOne(obj, function(err, twitter) {
         if (err) {
 
             logger.error("No Twitter found ", err);
@@ -84,76 +87,92 @@ function SendRequest(company, tenant, twitteroptions, cb){
                         CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, twitteroptions.text, function (isSuccess, result) {
 
                             if (isSuccess) {
-                                if(twitteroptions.reply_session) {
-                                    CreateComment('twitter', 'out_tweets', company, tenant, twitteroptions.reply_session, twitteroptions.author,result, function (done) {
+
+
+                                if(twitteroptions.update_comment){
+
+                                    UpdateComment(tenant, company, twitteroptions.comment,tweets.id_str, function (done) {
                                         if (done) {
+                                            logger.info("Update Comment Completed ");
 
-                                            logger.info("Tweet Reply Success with comment ");
-                                            return cb(true);
-                                        }
-                                        else {
+                                        } else {
 
-                                            logger.error("Comment Creation Failed ");
-                                            return cb(false);
+                                            logger.error("Update Comment Failed ");
+
                                         }
 
+                                        return cb(true);
                                     });
-                                }else{
 
-                                    if(twitteroptions.ticket){
+                                }else {
 
-                                        var ticket_type = 'action';
-                                        var ticket_priority = 'low';
-                                        var ticket_tags = [];
-
-                                        if( twitteroptions.ticket_type)
-                                        {
-                                            ticket_type = twitteroptions.ticket_type;
-                                        }
-
-                                        if( twitteroptions.ticket_priority)
-                                        {
-                                            ticket_priority = twitteroptions.ticket_priority;
-                                        }
-
-                                        if( twitteroptions.ticket_tags)
-                                        {
-                                            ticket_tags = twitteroptions.ticket_tags;
-                                        }
-
-
-
-                                        CreateTicket("twitter", tweets.id_str, result.profile, company, tenant, ticket_type , twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
+                                    if (twitteroptions.reply_session) {
+                                        CreateComment('twitter', 'out_tweets', company, tenant, twitteroptions.reply_session, twitteroptions.author, result, function (done) {
                                             if (done) {
-                                                logger.info("Create Ticket Completed ");
 
-                                            } else {
+                                                logger.info("Tweet Reply Success with comment ");
+                                                return cb(true);
+                                            }
+                                            else {
 
-                                                logger.error("Create Ticket Failed ");
-
+                                                logger.error("Comment Creation Failed ");
+                                                return cb(false);
                                             }
 
-                                            return cb(true);
                                         });
-                                    }else{
+                                    } else {
 
-                                        if(twitteroptions.comment){
+                                        if (twitteroptions.ticket) {
 
-                                            UpdateComment(tenant, company, twitteroptions.comment,tweets.id_str, function (done) {
+                                            var ticket_type = 'action';
+                                            var ticket_priority = 'low';
+                                            var ticket_tags = [];
+
+                                            if (twitteroptions.ticket_type) {
+                                                ticket_type = twitteroptions.ticket_type;
+                                            }
+
+                                            if (twitteroptions.ticket_priority) {
+                                                ticket_priority = twitteroptions.ticket_priority;
+                                            }
+
+                                            if (twitteroptions.ticket_tags) {
+                                                ticket_tags = twitteroptions.ticket_tags;
+                                            }
+
+
+                                            CreateTicket("twitter", tweets.id_str, result.profile, company, tenant, ticket_type, twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
                                                 if (done) {
-                                                    logger.info("Update Comment Completed ");
+                                                    logger.info("Create Ticket Completed ");
 
                                                 } else {
 
-                                                    logger.error("Update Comment Failed ");
+                                                    logger.error("Create Ticket Failed ");
 
                                                 }
 
                                                 return cb(true);
                                             });
+                                        } else {
 
-                                        }else {
-                                            return cb(true);
+                                            if (twitteroptions.comment) {
+
+                                                UpdateComment(tenant, company, twitteroptions.comment, tweets.id_str, function (done) {
+                                                    if (done) {
+                                                        logger.info("Update Comment Completed ");
+
+                                                    } else {
+
+                                                        logger.error("Update Comment Failed ");
+
+                                                    }
+
+                                                    return cb(true);
+                                                });
+
+                                            } else {
+                                                return cb(true);
+                                            }
                                         }
                                     }
                                 }
@@ -200,6 +219,7 @@ function SendTweet(message, deliveryInfo, ack) {
         ticket: message.ticket,
         comment: message.comment,
         author: message.author,
+        update_comment: message.update_comment,
         reply_session: message.reply_session,
         ticket_type : message.ticket_type,
         ticket_priority : message.ticket_priority,
@@ -296,12 +316,7 @@ function SendTweet(message, deliveryInfo, ack) {
     }else{
 
         SendRequest(company,tenant,tweetOptions,function(done){
-
-
                 ack.acknowledge();
-
-
-
         });
 
     }

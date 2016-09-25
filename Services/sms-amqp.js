@@ -37,7 +37,7 @@ queueConnection.on('ready', function () {
 
             if (!message || !message.to || !message.from || !message.body || !message.company || !message.tenant) {
                 console.log('Invalid message, skipping');
-                return ack.reject();
+                return ack.acknowledge();
             }
             ///////////////////////////create body/////////////////////////////////////////////////
 
