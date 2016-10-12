@@ -886,7 +886,9 @@ var processFacebookWallData = function (fbData) {
             async.parallel(createTicketTasks,
                 function (err, results) {
                     if (!err) {
-                        console.info("create Ticket");
+                        console.info("create Ticket", results);
+                    }else{
+                        console.error("create Ticket error", error);
                     }
                 });
         }
