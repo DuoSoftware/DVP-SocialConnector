@@ -82,8 +82,8 @@ module.exports = {
   {
     "ip": "45.55.142.207",
     "port": 5672,
-    "user": "guest",
-    "password": "guest"
+    "user": "admin",
+    "password": "admin"
   },
 
   "SMSServer":{
