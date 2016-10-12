@@ -112,7 +112,7 @@ function SendRequest(company, tenant, mailoptions, cb){
                                             ticket_tags = mailoptions.ticket_tags;
                                         }
 
-                                        CreateTicket("sms", sessionid, result.profile, company, tenant, ticket_type, mailoptions.text, mailoptions.text, ticket_priority, ticket_tags, function (done) {
+                                        CreateTicket("sms", sessionid, result.profile_id, company, tenant, ticket_type, mailoptions.text, mailoptions.text, ticket_priority, ticket_tags, function (done) {
                                             if (done) {
                                                 logger.info("Create Ticket Completed ");
                                             } else {

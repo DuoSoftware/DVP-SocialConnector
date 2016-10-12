@@ -141,7 +141,7 @@ function SendRequest(company, tenant, twitteroptions, cb){
                                             }
 
 
-                                            CreateTicket("twitter", tweets.id_str, result.profile, company, tenant, ticket_type, twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
+                                            CreateTicket("twitter", tweets.id_str, result.profile_id, company, tenant, ticket_type, twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
                                                 if (done) {
                                                     logger.info("Create Ticket Completed ");
 

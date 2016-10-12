@@ -83,6 +83,180 @@ function CreateTwitterAccount(req, res) {
 
 };
 
+
+
+
+function StreamTwitterMessages(req, res) {
+
+
+    logger.debug("DVP-SocialConnector.LoadTwitterMessages Internal method ");
+    var jsonString;
+    var tenant = parseInt(req.user.tenant);
+    var company = parseInt(req.user.company);
+
+    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function(err, twitter) {
+        if (err) {
+
+            jsonString = messageFormatter.FormatMessage(err, "Get Twitter Failed", false, undefined);
+            res.end(jsonString);
+
+        }else {
+
+            if (twitter) {
+
+
+                jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
+
+
+                var client = new TwitterClient({
+                    consumer_key: _twitterConsumerKey,
+                    consumer_secret: _twitterConsumerSecret,
+                    access_token_key: twitter.access_token_key,
+                    access_token_secret: twitter.access_token_secret
+                });
+
+
+
+
+                if (twitter) {
+                    jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
+                    var ticket_type = 'question';
+                    var ticket_tags = [];
+                    var ticket_priority = 'low';
+
+                    if(twitter.ticket_type){
+                        ticket_type = ticket_type;
+                    }
+
+                    if(twitter.ticket_tags){
+                        ticket_tags = ticket_tags;
+                    }
+
+                    if(twitter.ticket_priority){
+                        ticket_priority = ticket_priority;
+                    }
+
+                    var client = new TwitterClient({
+                        consumer_key: _twitterConsumerKey,
+                        consumer_secret: _twitterConsumerSecret,
+                        access_token_key: twitter.access_token_key,
+                        access_token_secret: twitter.access_token_secret
+                    });
+                    //var params = {screen_name: 'nodejs', trim_user: true};
+
+
+                    client.stream('user', {}, function(stream) {
+                        stream.on('data', function(item) {
+                            console.log(item && item.text);
+
+
+                            if(item.in_reply_to_screen_name && item.id_str) {
+
+
+                                var since_id = item.id_str;
+                                twitter.tweet_since = since_id;
+                                Twitter.findOneAndUpdate({
+                                    company: company,
+                                    tenant: tenant,
+                                    _id: req.params.id
+                                }, {$set: {tweet_since: since_id}}, function (err, doc) {
+                                    if (err) {
+                                        logger.error("Update since id failed" + err);
+
+                                    } else {
+
+
+                                        CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, function (isSuccess, result) {
+                                            if (isSuccess) {
+                                                //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
+                                                if (item.in_reply_to_status_id_str) {
+                                                    CreateComment('twitter', 'tweets', company, tenant, item.in_reply_to_status_id_str, undefined, result, function (done) {
+                                                        if (!done) {
+
+                                                            CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
+                                                                if (done) {
+                                                                    logger.info("Twitter Ticket Added successfully " + item.id_str);
+
+                                                                } else {
+
+                                                                    logger.error("Create Ticket failed " + item.id);
+
+                                                                }
+                                                            });
+                                                        } else {
+
+                                                            logger.info("Twitter Comment Added successfully " + item.id_str);
+                                                        }
+                                                    })
+                                                } else {
+                                                    /////////////////////////////////////////////create ticket directly//////////////////////////
+                                                    //CreateTicket("sms",sessionid,sessiondata["CompanyId"],sessiondata["TenantId"],smsData["type"], smsData["subject"], smsData["description"],smsData["priority"],smsData["tags"],function(success, result){});
+
+                                                    CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
+                                                        if (done) {
+
+
+                                                            logger.info("Twitter Ticket Added successfully " + item.id_str);
+
+
+                                                        } else {
+
+                                                            logger.error("Add Request failed " + item.id);
+
+                                                        }
+                                                    });
+                                                }
+                                                //////////////////////////////////////first check in comments and update them////////////////////////////////////////////////////////////////
+
+                                            } else {
+
+                                                logger.error("Create engagement failed " + item.id);
+
+                                            }
+                                        })
+                                    }
+                                });
+                            }else{
+                                console.log("no enough data");
+                            }
+
+                        });
+
+                        stream.on('error', function(error) {
+                            throw error;
+                        });
+                    });
+
+                }else{
+
+                    jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
+                    res.end(jsonString);
+
+                }
+
+
+
+
+
+                jsonString = messageFormatter.FormatMessage(undefined, "Twitter Stream started", true, undefined);
+                res.end(jsonString);
+
+
+
+            }else{
+
+                jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
+                res.end(jsonString);
+
+            }
+        }
+
+
+    });
+};
+
+
+
 function UpdateTwitterAccount(req, res) {
 
 
@@ -367,7 +541,7 @@ function LoadTweets(req, res) {
                                                     CreateComment('twitter','tweets',company, tenant,item.in_reply_to_status_id_str, undefined,result, function (done) {
                                                         if (!done) {
 
-                                                            CreateTicket("twitter", item.id_str, result.profile, company, tenant,  ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
+                                                            CreateTicket("twitter", item.id_str, result.profile_id, company, tenant,  ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
                                                                 if (done) {
                                                                     logger.info("Twitter Ticket Added successfully " + item.id_str);
 
@@ -386,7 +560,7 @@ function LoadTweets(req, res) {
                                                     /////////////////////////////////////////////create ticket directly//////////////////////////
                                                     //CreateTicket("sms",sessionid,sessiondata["CompanyId"],sessiondata["TenantId"],smsData["type"], smsData["subject"], smsData["description"],smsData["priority"],smsData["tags"],function(success, result){});
 
-                                                    CreateTicket("twitter", item.id_str,result.profile,company, tenant, ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
+                                                    CreateTicket("twitter", item.id_str,result.profile_id,company, tenant, ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
                                                         if (done) {
 
 
@@ -500,3 +674,4 @@ module.exports.DeleteTwitterAccount = DeleteTwitterAccount;
 module.exports.UpdateTwitterAccount = UpdateTwitterAccount;
 module.exports.GetTwitterAccount = GetTwitterAccount;
 module.exports.GetTwitterAccounts = GetTwitterAccounts;
+module.exports.StreamTwitterMessages = StreamTwitterMessages;

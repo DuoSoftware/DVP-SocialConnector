@@ -30,18 +30,22 @@ var twitterAsync = require('./Services/twitter-amqp');
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
 // Setup some https server options
-var https_options = {
-    ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
-    key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
-};
 
 // Instantiate our two servers
 var server = restify.createServer({
     name: "DVP Engagement Service"
 });
 
+/*
+var https_options = {
+    ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
+    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
+};
+
 var https_server = restify.createServer(https_options);
+*/
+
 
 // Put any routing, response, etc. logic here. This allows us to define these functions
 // only once, and it will be re-used on both the HTTP and HTTPs servers
@@ -88,26 +92,12 @@ var setup_server = function (server) {
         res.send(200);
     });
 
-    /*server.get('/facebook', function (req, res) {
-        console.log("Facebook Callback........");
-        console.log(req.params.hub.mode);
-        console.log(req.params.hub.verify_token);
-        console.log("Facebook Callback........");
-        if (req.params.hub.mode.toString() == 'subscribe' && req.params.hub.verify_token.toString() == 'DuoS123')
-        {
-            var chg =parseInt(req.params.hub.challenge);
-            res.end(chg);
-        } else {
-            console.log("Error");
-            res.end(400);
-        }
-    });*/
 
 
 };
 
 // Now, setup both servers in one step
-setup_server(https_server);
+//setup_server(https_server);
 
 server.pre(restify.pre.userAgentConnection());
 server.use(restify.bodyParser({mapParams: false}));
@@ -124,6 +114,15 @@ server.post('DVP/API/:version/Social/Twitter/:id/directmessages', authorization(
     resource: "social",
     action: "read"
 }), twitterService.LoadTwitterMessages);
+
+server.get('DVP/API/:version/Social/Twitter/:id/streammessages', authorization({
+    resource: "social",
+    action: "read"
+}), twitterService.StreamTwitterMessages);
+
+
+
+
 server.get('DVP/API/:version/Social/Twitter/:id/tweets', authorization({
     resource: "social",
     action: "read"
@@ -229,10 +228,12 @@ server.post('DVP/API/:version/Social/fb/:pageId/subscribe/:verify_token/callback
     action: "read"
 }), fb.SubscribeToPage);
 
-
+/*
 https_server.listen(443, function () {
     console.log('%s listening at %s', https_server.name, https_server.url);
 });
+*/
+
 
 // Start our servers to listen on the appropriate ports
 server.listen(port, function () {

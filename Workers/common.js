@@ -290,6 +290,9 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
     }
 }
 
+
+
+
 function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
     if((config.Services && config.Services.cronurl && config.Services.cronport && config.Services.cronversion)) {
