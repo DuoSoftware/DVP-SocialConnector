@@ -671,6 +671,8 @@ module.exports.RealTimeUpdates = function (fbData) {
 
     fbData.entry.forEach(function (items) {
 
+        console.log(items);
+
         items.changes.forEach(function (change) {
 
             if (change.field == "feed") {
@@ -738,6 +740,8 @@ var RealTimeComments = function(id,fbData){
 
 var RealTimeCreateTicket = function (id,fbData) {
 
+
+
     var jsonString;
     SocialConnector.findOne({_id: id}, function (err, fbConnector) {
         if (err) {
@@ -769,13 +773,13 @@ var RealTimeCreateTicket = function (id,fbData) {
 
                         //CreateTicket(channel,session,profile, company, tenant, type, subjecct, description, priority, tags, cb)
 
-                        CreateTicket("facebook", engagement.engagement_id, engagement.profile_id, company, tenant, "question", "Facebook Wall Post " +fbData.id, fbData.message, "normal", ["facebook.post.common.common"], function (done) {
+                        CreateTicket("facebook", engagement.engagement_id, engagement.profile_id, company, tenant, "question", "Facebook Wall Post " +fbData.post_id, fbData.message, "normal", ["facebook.post.common.common"], function (done) {
                             if (done) {
-                                logger.info("Facebook Ticket Added successfully " + fbData.id);
+                                logger.info("Facebook Ticket Added successfully " + fbData.post_id);
 
                             } else {
 
-                                logger.error("Create Ticket failed " + fbData.id);
+                                logger.error("Create Ticket failed " + fbData.post_id);
 
                             }
                         });
