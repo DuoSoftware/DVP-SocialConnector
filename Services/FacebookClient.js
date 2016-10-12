@@ -797,6 +797,8 @@ var RealTimeCreateTicket = function (id,fbData) {
                         };
 
                         request(options, function (error, response, body) {
+
+                            console.log(response);
                             if (response.statusCode == 200) {
                                 if(body.IsSuccess)
                                     jsonString = messageFormatter.FormatMessage(undefined, "Ticket Create Successfully.", true, undefined);
