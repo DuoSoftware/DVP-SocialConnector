@@ -26,6 +26,7 @@ var token = config.Services.accessToken;
 
 var smsAsync = require('./Services/sms-amqp');
 var twitterAsync = require('./Services/twitter-amqp');
+var fbAsync = require ('./Services/FacebookClient-amqp');
 
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
@@ -36,7 +37,7 @@ var server = restify.createServer({
     name: "DVP Engagement Service"
 });
 
-
+/*
 var https_options = {
     ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
     key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
@@ -44,7 +45,7 @@ var https_options = {
 };
 
 var https_server = restify.createServer(https_options);
-
+*/
 
 // Put any routing, response, etc. logic here. This allows us to define these functions
 // only once, and it will be re-used on both the HTTP and HTTPs servers
@@ -96,7 +97,7 @@ var setup_server = function (server) {
 };
 
 // Now, setup both servers in one step
-setup_server(https_server);
+//setup_server(https_server);
 
 server.pre(restify.pre.userAgentConnection());
 server.use(restify.bodyParser({mapParams: false}));
@@ -227,11 +228,11 @@ server.post('DVP/API/:version/Social/fb/:pageId/subscribe/:verify_token/callback
     action: "read"
 }), fb.SubscribeToPage);
 
-
+/*
 https_server.listen(443, function () {
     console.log('%s listening at %s', https_server.name, https_server.url);
 });
-
+*/
 
 
 // Start our servers to listen on the appropriate ports
