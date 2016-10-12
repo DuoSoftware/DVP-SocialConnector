@@ -26,7 +26,7 @@ var queueConnection = amqp.createConnection({
 });
 
 queueConnection.on('ready', function () {
-    queueConnection.queue(queueName, function (q) {
+    queueConnection.queue(queueName, {durable: true, autoDelete: false},function (q) {
         q.bind('#');
         q.subscribe({
             ack: true,
