@@ -10,7 +10,7 @@ var SocialConnector = require('dvp-mongomodels/model/SocialConnector').SocialCon
 var async = require("async");
 var moment = require('moment');
 var config = require('config');
-
+var CreateTicket = require('../Workers/common').CreateTicket;
 var AddToRequest = require('../Workers/common').AddToRequest;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateEngagement = require('../Workers/common').CreateEngagement;
@@ -767,7 +767,22 @@ var RealTimeCreateTicket = function (id,fbData) {
                     if (isSuccess) {
 
 
-                        /*Create Tickets*/
+                        //CreateTicket(channel,session,profile, company, tenant, type, subjecct, description, priority, tags, cb)
+
+                        CreateTicket("facebook", engagement.engagement_id, engagement.profile_id, company, tenant, "question", "Facebook Wall Post " +fbData.id, fbData.message, "normal", ["facebook.post.common.common"], function (done) {
+                            if (done) {
+                                logger.info("Facebook Ticket Added successfully " + fbData.id);
+
+                            } else {
+
+                                logger.error("Create Ticket failed " + fbData.id);
+
+                            }
+                        });
+
+
+                        /*
+
                         var ticketData = {
                             "type": "question",
                             "subject": "Facebook Wall Post",
@@ -779,11 +794,12 @@ var RealTimeCreateTicket = function (id,fbData) {
                             "engagement_session": engagement.engagement_id,
                             "channel": JSON.stringify(from),
                             "tags": ["facebook.post.common.common",name]
-                            /*"custom_fields": [{"field": "123", "value": "12"}],*/
+
 
                         };
-                        /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
+
                         var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
+
 
                         var options = {
                             method: 'POST',
@@ -812,8 +828,8 @@ var RealTimeCreateTicket = function (id,fbData) {
 
                             logger.info("FB Real  Rime Updates: " + jsonString);
                         });
+*/
 
-                        /*Create Tickets*/
                     }
                     else {
                         logger.error("Create engagement failed " + id);
