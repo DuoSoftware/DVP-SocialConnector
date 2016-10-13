@@ -23,22 +23,22 @@ var queueConnection = amqp.createConnection({
 });
 
 queueConnection.on('ready', function () {
-    queueConnection.queue(queueName, function (q) {
+    queueConnection.queue(queueName, {durable: true, autoDelete: false},function (q) {
         q.bind('#');
         q.subscribe({
             ack: true,
             prefetchCount: 10
         }, function (message, headers, deliveryInfo, ack) {
 
-            message = JSON.parse(message.data.toString());
+            //message = JSON.parse(message.data.toString());
 
-            if (!message || !message.to || !message.from || !message.objectid ||  !message.body || !message.company || !message.tenant) {
+            if (!message || !message.to || !message.from || !message.reply_session ||  !message.body || !message.company || !message.tenant) {
                 console.log('FB Client AMQP-Invalid message, skipping');
-                return ack.reject();
+                return ack.acknowledge();
             }
             ///////////////////////////create body/////////////////////////////////////////////////
 
-            MakeCommentsToWallPost(message.tenant,message.company,message.from,message.objectid,message.body,ack)
+            MakeCommentsToWallPost(message.tenant,message.company,message.from,message.reply_session,message.body,ack)
         });
     });
 });
@@ -46,7 +46,7 @@ queueConnection.on('ready', function () {
 function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
 
 
-    SocialConnector.findOne({'_id': connectorId, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': JSON.parse(connectorId).id, company: company, tenant: tenant}, function (err, user) {
 
         if (err) {
             logger.error("Fail To Find Social Connector.",err);
@@ -70,7 +70,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
             request(options, function (error, response, body) {
                 if (error) {
                     logger.error("Fail To Make Comment.",err);
-                    ack.reject(true);
+                    ack.acknowledge();
                 }
                 else {
 
@@ -79,14 +79,14 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
                     }
                     else {
                         logger.error("Fail To Make Comment.",new Error("Fail To Make Comment"));
-                        ack.reject(true);
+                        ack.acknowledge();
                     }
                 }
             });
         }
         else {
             logger.error("Fail To Find Connector.",new Error("Fail To Find Connector"));
-            ack.reject(true);
+            ack.acknowledge();
         }
     });
 }

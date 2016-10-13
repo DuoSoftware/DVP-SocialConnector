@@ -30,7 +30,7 @@ var queueConnection = amqp.createConnection({
 });
 
 queueConnection.on('ready', function () {
-    queueConnection.queue(queueName, function (q) {
+    queueConnection.queue(queueName, {durable: true, autoDelete: false},function (q) {
         q.bind('#');
         q.subscribe({
             ack: true,
@@ -141,7 +141,7 @@ function SendRequest(company, tenant, twitteroptions, cb){
                                             }
 
 
-                                            CreateTicket("twitter", tweets.id_str, result.profile, company, tenant, ticket_type, twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
+                                            CreateTicket("twitter", tweets.id_str, result.profile_id, company, tenant, ticket_type, twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
                                                 if (done) {
                                                     logger.info("Create Ticket Completed ");
 

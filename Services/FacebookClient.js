@@ -10,7 +10,7 @@ var SocialConnector = require('dvp-mongomodels/model/SocialConnector').SocialCon
 var async = require("async");
 var moment = require('moment');
 var config = require('config');
-
+var CreateTicket = require('../Workers/common').CreateTicket;
 var AddToRequest = require('../Workers/common').AddToRequest;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateEngagement = require('../Workers/common').CreateEngagement;
@@ -670,6 +670,8 @@ module.exports.SubscribeToPage = function (req, res) {
 module.exports.RealTimeUpdates = function (fbData) {
     fbData.entry.forEach(function (items) {
 
+        console.log(items);
+
         items.changes.forEach(function (change) {
 
             if (change.field == "feed") {
@@ -737,6 +739,8 @@ var RealTimeComments = function(id,fbData){
 
 var RealTimeCreateTicket = function (id,fbData) {
 
+
+
     var jsonString;
     SocialConnector.findOne({_id: id}, function (err, fbConnector) {
         if (err) {
@@ -766,7 +770,22 @@ var RealTimeCreateTicket = function (id,fbData) {
                     if (isSuccess) {
 
 
-                        /*Create Tickets*/
+                        //CreateTicket(channel,session,profile, company, tenant, type, subjecct, description, priority, tags, cb)
+
+                        CreateTicket("facebook-post", engagement.engagement_id, engagement.profile_id, company, tenant, "question", "Facebook Wall Post ", fbData.message, "normal", ["facebook.post.common.common"], function (done) {
+                            if (done) {
+                                logger.info("Facebook Ticket Added successfully " + fbData.post_id);
+
+                            } else {
+
+                                logger.error("Create Ticket failed " + fbData.post_id);
+
+                            }
+                        });
+
+
+                        /*
+
                         var ticketData = {
                             "type": "question",
                             "subject": "Facebook Wall Post",
@@ -778,11 +797,12 @@ var RealTimeCreateTicket = function (id,fbData) {
                             "engagement_session": engagement.engagement_id,
                             "channel": JSON.stringify(from),
                             "tags": ["facebook.post.common.common",name]
-                            /*"custom_fields": [{"field": "123", "value": "12"}],*/
+
 
                         };
-                        /*var ticketUrl = "http://localhost:3636/DVP/API/1.0/Ticket/Comments";*/
+
                         var ticketUrl = format("http://{0}/DVP/API/{1}/Ticket", config.Services.ticketServiceHost, config.Services.ticketServiceVersion);
+
 
                         var options = {
                             method: 'POST',
@@ -796,6 +816,8 @@ var RealTimeCreateTicket = function (id,fbData) {
                         };
 
                         request(options, function (error, response, body) {
+
+                            console.log(response);
                             if (response.statusCode == 200) {
                                 if(body.IsSuccess)
                                     jsonString = messageFormatter.FormatMessage(undefined, "Ticket Create Successfully.", true, undefined);
@@ -809,8 +831,8 @@ var RealTimeCreateTicket = function (id,fbData) {
 
                             logger.info("FB Real  Rime Updates: " + jsonString);
                         });
+*/
 
-                        /*Create Tickets*/
                     }
                     else {
                         logger.error("Create engagement failed " + id);
@@ -885,7 +907,9 @@ var processFacebookWallData = function (fbData) {
             async.parallel(createTicketTasks,
                 function (err, results) {
                     if (!err) {
-                        console.info("create Ticket");
+                        console.info("create Ticket", results);
+                    }else{
+                        console.error("create Ticket error", error);
                     }
                 });
         }
