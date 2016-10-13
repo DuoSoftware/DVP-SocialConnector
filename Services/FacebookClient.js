@@ -668,7 +668,6 @@ module.exports.SubscribeToPage = function (req, res) {
 };
 
 module.exports.RealTimeUpdates = function (fbData) {
-
     fbData.entry.forEach(function (items) {
 
         items.changes.forEach(function (change) {
