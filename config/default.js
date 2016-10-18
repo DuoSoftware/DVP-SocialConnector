@@ -116,8 +116,12 @@ module.exports = {
     "facebookUrl" : "https://graph.facebook.com/v2.7/"
 
 
+  },
+
+  "SocialConnector":
+  {
+    "fb_client_id":"825442624259571",
+    "fb_client_secret":"85eab7232db0c38abd7d04baa358382f"
   }
-
-
 
 };
