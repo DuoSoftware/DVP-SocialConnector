@@ -248,9 +248,9 @@ server.post('DVP/API/:version/Social/fb/:pageId/subscribe/:verify_token/callback
 }), fb.SubscribeToPage);
 
 
-/*https_server.listen(443, function () {
+https_server.listen(443, function () {
     console.log('%s listening at %s', https_server.name, https_server.url);
-});*/
+});
 
 
 
