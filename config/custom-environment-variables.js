@@ -80,7 +80,7 @@ module.exports = {
 		
         "cronurl": "SYS_SCHEDULEWORKER_HOST",
         "cronport": "SYS_SCHEDULEWORKER_PORT",
-        "cronversion": "SYS_SCHEDULEWORKER_VERSION"
+        "cronversion": "SYS_SCHEDULEWORKER_VERSION",
 		
 		"ticketServiceHost": "SYS_LITETICKET_HOST",
         "ticketServicePort": "SYS_LITETICKET_PORT",
