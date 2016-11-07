@@ -35,7 +35,23 @@ module.exports = {
         "password":"SYS_MONGO_PASSWORD",
         "user":"SYS_MONGO_USER"
     },
+	
+	    "RabbitMQ":
+    {
+        "ip": "SYS_RABBITMQ_HOST",
+        "port": "SYS_RABBITMQ_PORT",
+        "user": "SYS_RABBITMQ_USER",
+        "password": "SYS_RABBITMQ_PASSWORD"
+    },
 
+	"SMSServer":{
+		
+		"ip": "SYS_SMSSERVER_HOST",
+		"port": "SYS_SMSSERVER_PORT",
+		"password": "SYS_SMSSERVER_PASSWORD",
+		"user": "SYS_SMSSERVER_USER"
+
+	},
 
 
     "Host":
@@ -57,12 +73,25 @@ module.exports = {
         "resourceServiceHost": "SYS_RESOURCESERVICE_HOST",
         "resourceServicePort": "SYS_RESOURCESERVICE_PORT",
         "resourceServiceVersion": "SYS_RESOURCESERVICE_VERSION",
-        "sipuserendpointserviceHost": "SYS_SIPUSERENDPOINTSERVICE_HOST",
-        "sipuserendpointservicePort": "SYS_SIPUSERENDPOINTSERVICE_PORT",
-        "sipuserendpointserviceVersion": "SYS_SIPUSERENDPOINTSERVICE_VERSION",
-        "clusterconfigserviceHost": "SYS_CLUSTERCONFIG_HOST",
-        "clusterconfigservicePort": "SYS_CLUSTERCONFIG_PORT",
-        "clusterconfigserviceVersion": "SYS_CLUSTERCONFIG_VERSION"
+		
+        "interactionurl": "SYS_INTERACTIONS_HOST",
+        "interactionport": "SYS_INTERACTIONS_PORT",
+        "interactionversion": "SYS_INTERACTIONS_VERSION",
+		
+        "cronurl": "SYS_SCHEDULEWORKER_HOST",
+        "cronport": "SYS_SCHEDULEWORKER_PORT",
+        "cronversion": "SYS_SCHEDULEWORKER_VERSION",
+		
+		"ticketServiceHost": "SYS_LITETICKET_HOST",
+        "ticketServicePort": "SYS_LITETICKET_PORT",
+        "ticketServicePort": "SYS_LITETICKET_VERSION",
+		
+		"ardsServiceHost": "SYS_ARDSLITESERVICE_HOST",
+		"ardsServicePort": "SYS_ARDSLITESERVICE_PORT",
+		"ardsServiceVersion": "SYS_ARDSLITESERVICE_VERSION",
+
+		"facebookUrl" : "SYS_FACEBOOK_URL"
+
     }
 };
 

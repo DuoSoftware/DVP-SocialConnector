@@ -47,8 +47,8 @@ function CreateTwitterAccount(req, res) {
         ticket_tags: req.body.ticket_tags,
         ticket_priority: req.body.ticket_priority,
         created_at: Date.now(),
-        updated_at: Date.now()
-
+        updated_at: Date.now(),
+        status :true
     });
 
     twitter.save(function (err, engage) {
@@ -79,12 +79,53 @@ function CreateTwitterAccount(req, res) {
 
         }
     });
+}
+
+function DeleteTwitterAccount(req, res) {
 
 
-};
+    logger.debug("DVP-SocialConnector.DeleteTwitterAccount Internal method ");
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+    var twitter = Twitter({
+        status :false,
+        updated_at: Date.now()
+    });
+
+    Twitter.findOneAndUpdate({_id: req.params.id,company: company, tenant: tenant},twitter, function(err, twitter) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Delete Twitter account failed", false, undefined);
+        }else{
+            jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, twitter);
+        }
+        res.end(jsonString);
+    });
+}
+
+function ActivateTwitterAccount(req, res) {
 
 
+    logger.debug("DVP-SocialConnector.ActivateTwitterAccount Internal method ");
 
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+    var twitter = Twitter({
+        status :true,
+        updated_at: Date.now()
+    });
+
+    Twitter.findOneAndUpdate({_id: req.params.id,company: company, tenant: tenant},twitter, function(err, twitter) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Activate Twitter account failed", false, undefined);
+        }else{
+            jsonString = messageFormatter.FormatMessage(undefined, "Activate Twitter account Success", true, twitter);
+        }
+        res.end(jsonString);
+    });
+}
 
 function StreamTwitterMessages(req, res) {
 
@@ -280,7 +321,7 @@ function UpdateTwitterAccount(req, res) {
 
 };
 
-function DeleteTwitterAccount(req,res){
+/*function DeleteTwitterAccount(req,res){
 
 
     logger.debug("DVP-SocialConnector.DeleteTwitterAccount Internal method ");
@@ -297,7 +338,7 @@ function DeleteTwitterAccount(req,res){
         res.end(jsonString);
     });
 
-};
+};*/
 
 function GetTwitterAccount(req,res){
 
@@ -657,6 +698,7 @@ function ReplyTweet(req, res){
 
 
 module.exports.CreateTwitterAccount = CreateTwitterAccount;
+module.exports.ActivateTwitterAccount = ActivateTwitterAccount;
 module.exports.LoadTwitterMessages = LoadTwitterMessages;
 module.exports.LoadTweets = LoadTweets;
 module.exports.ReplyTweet = ReplyTweet;

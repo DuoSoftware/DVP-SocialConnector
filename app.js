@@ -147,6 +147,10 @@ server.del('DVP/API/:version/Social/Twitter/:id', authorization({
     resource: "social",
     action: "delete"
 }), twitterService.DeleteTwitterAccount);
+server.put('DVP/API/:version/Social/Twitter/:id/activate', authorization({
+    resource: "social",
+    action: "delete"
+}), twitterService.ActivateTwitterAccount);
 server.put('DVP/API/:version/Social/Twitter/:id', authorization({
     resource: "social",
     action: "write"
@@ -181,6 +185,11 @@ server.post('DVP/API/:version/Social/SMS', authorization({resource: "social", ac
 
 /*-----------------------------Facebook------------------------------------------*/
 
+server.get('DVP/API/:version/Social/Facebook/accounts', authorization({
+    resource: "social",
+    action: "read"
+}), fb.GetFacebookAccounts);
+
 server.post('DVP/API/:version/Social/Facebook', authorization({
     resource: "social",
     action: "write"
@@ -190,6 +199,16 @@ server.del('DVP/API/:version/Social/Facebook/:id', authorization({
     resource: "social",
     action: "write"
 }), fb.DeleteFacebookAccount);
+
+server.put('DVP/API/:version/Social/Facebook/:id', authorization({
+    resource: "social",
+    action: "write"
+}), fb.ActiveteFacebookAccount);
+
+server.put('DVP/API/:version/Social/Facebook/:id/picture', authorization({
+    resource: "social",
+    action: "write"
+}), fb.UpdatePagePicture);
 
 server.post('DVP/API/:version/Social/Facebook/:id/wallpost', authorization({
     resource: "social",

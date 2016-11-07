@@ -86,18 +86,6 @@ module.exports = {
     "password": "admin"
   },
 
-  "SMSServer":{
-
-
-    "ip":"159.203.109.43",
-    "port":"1401",
-    "password":"bar",
-    "user":"foo"
-
-
-
-  },
-
 
   "Services" : {
     "accessToken":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdWtpdGhhIiwianRpIjoiYWEzOGRmZWYtNDFhOC00MWUyLTgwMzktOTJjZTY0YjM4ZDFmIiwic3ViIjoiNTZhOWU3NTlmYjA3MTkwN2EwMDAwMDAxMjVkOWU4MGI1YzdjNGY5ODQ2NmY5MjExNzk2ZWJmNDMiLCJleHAiOjE5MDIzODExMTgsInRlbmFudCI6LTEsImNvbXBhbnkiOi0xLCJzY29wZSI6W3sicmVzb3VyY2UiOiJhbGwiLCJhY3Rpb25zIjoiYWxsIn1dLCJpYXQiOjE0NzAzODExMTh9.Gmlu00Uj66Fzts-w6qEwNUz46XYGzE8wHUhAJOFtiRo",
@@ -129,8 +117,12 @@ module.exports = {
     "facebookUrl" : "https://graph.facebook.com/v2.7/"
 
 
+  },
+
+  "SocialConnector":
+  {
+    "fb_client_id":"825442624259571",
+    "fb_client_secret":"85eab7232db0c38abd7d04baa358382f"
   }
-
-
 
 };
