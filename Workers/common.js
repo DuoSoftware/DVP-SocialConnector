@@ -178,7 +178,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
 
 };
 
-function CreateEngagement(channel, company, tenant, from, to, direction, session, data,cb){
+function CreateEngagement(channel, company, tenant, from, to, direction, session, data, user, cb){
 
     if((config.Services && config.Services.interactionurl && config.Services.interactionport && config.Services.interactionversion)) {
 
@@ -193,7 +193,8 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             direction: direction,
             channel_from:from,
             channel_to: to,
-            body: data
+            body: data,
+            user: user
         };
 
         logger.debug("Calling Engagement service URL %s", engagementURL);

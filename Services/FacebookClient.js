@@ -766,7 +766,9 @@ var RealTimeCreateTicket = function (id,fbData) {
                     "name": name
                 };
 
-                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.post_id, fbData.message, function (isSuccess, engagement) {
+                var user = {};
+
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.post_id, fbData.message, user, function (isSuccess, engagement) {
 
                     if (isSuccess) {
 

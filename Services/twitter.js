@@ -116,23 +116,21 @@ function StreamTwitterMessages(req, res) {
                 });
 
 
-
-
                 if (twitter) {
                     jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
                     var ticket_type = 'question';
                     var ticket_tags = [];
                     var ticket_priority = 'low';
 
-                    if(twitter.ticket_type){
+                    if (twitter.ticket_type) {
                         ticket_type = ticket_type;
                     }
 
-                    if(twitter.ticket_tags){
+                    if (twitter.ticket_tags) {
                         ticket_tags = ticket_tags;
                     }
 
-                    if(twitter.ticket_priority){
+                    if (twitter.ticket_priority) {
                         ticket_priority = ticket_priority;
                     }
 
@@ -145,13 +143,12 @@ function StreamTwitterMessages(req, res) {
                     //var params = {screen_name: 'nodejs', trim_user: true};
 
 
-                    client.stream('user', {}, function(stream) {
-                        stream.on('data', function(item) {
+                    client.stream('user', {}, function (stream) {
+                        stream.on('data', function (item) {
                             console.log(item && item.text);
 
 
-                            if(item.in_reply_to_screen_name && item.id_str) {
-
+                            if (item.in_reply_to_screen_name && item.id_str) {
 
                                 var since_id = item.id_str;
                                 twitter.tweet_since = since_id;
@@ -166,7 +163,11 @@ function StreamTwitterMessages(req, res) {
                                     } else {
 
 
-                                        CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, function (isSuccess, result) {
+                                        var user = {};
+                                        user.name = item.user.name;
+                                        user.avatar = item.user.profile_image_url;
+
+                                        CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, user, function (isSuccess, result) {
                                             if (isSuccess) {
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
                                                 if (item.in_reply_to_status_id_str) {
@@ -195,14 +196,11 @@ function StreamTwitterMessages(req, res) {
                                                     CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
                                                         if (done) {
 
-
                                                             logger.info("Twitter Ticket Added successfully " + item.id_str);
-
 
                                                         } else {
 
                                                             logger.error("Add Request failed " + item.id);
-
                                                         }
                                                     });
                                                 }
@@ -211,46 +209,38 @@ function StreamTwitterMessages(req, res) {
                                             } else {
 
                                                 logger.error("Create engagement failed " + item.id);
-
                                             }
                                         })
                                     }
                                 });
-                            }else{
+                            } else {
                                 console.log("no enough data");
                             }
 
                         });
 
-                        stream.on('error', function(error) {
+                        stream.on('error', function (error) {
                             throw error;
                         });
                     });
 
-                }else{
+                } else {
 
                     jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                     res.end(jsonString);
 
                 }
 
-
-
-
-
                 jsonString = messageFormatter.FormatMessage(undefined, "Twitter Stream started", true, undefined);
                 res.end(jsonString);
 
-
-
-            }else{
+            } else {
 
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                 res.end(jsonString);
 
             }
         }
-
 
     });
 };
