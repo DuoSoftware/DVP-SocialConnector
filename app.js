@@ -39,9 +39,9 @@ var server = restify.createServer({
 
 
 var https_options = {
-    ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
-    key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
+    //ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    //key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
+    //certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
 };
 
 var https_server = restify.createServer(https_options);
@@ -119,9 +119,6 @@ server.get('DVP/API/:version/Social/Twitter/:id/streammessages', authorization({
     resource: "social",
     action: "read"
 }), twitterService.StreamTwitterMessages);
-
-
-
 
 server.get('DVP/API/:version/Social/Twitter/:id/tweets', authorization({
     resource: "social",
