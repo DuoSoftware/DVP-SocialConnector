@@ -19,6 +19,16 @@ var queueHost = format('amqp://{0}:{1}@{2}:{3}',config.RabbitMQ.user,config.Rabb
 var queueName = config.Host.smsQueueName;
 
 
+var smsmode = config.Host.smsmode;
+var smpp;
+if(smsmode == 'smpp'){
+
+    smpp = require('../Workers/smpp');
+
+
+}
+
+
 
 
 var queueConnection = amqp.createConnection({
@@ -33,9 +43,9 @@ queueConnection.on('ready', function () {
             prefetchCount: 10
         }, function (message, headers, deliveryInfo, ack) {
 
-            //message = JSON.parse(message.data.toString());
+            message = JSON.parse(message.data.toString());
 
-            if (!message || !message.to || !message.from || !message.body || !message.company || !message.tenant) {
+            if (!message || !message.to || !message.from || !message.company || !message.tenant) {
                 console.log('Invalid message, skipping');
                 return ack.acknowledge();
             }
@@ -51,6 +61,113 @@ var mainServer = format("http://{0}", config.LBServer.ip);
 
 if(validator.isIP(config.LBServer.ip))
     mainServer = format("http://{0}:{1}", config.LBServer.ip, config.LBServer.port);
+
+
+function SendSMPP(company, tenant, mailoptions, cb){
+
+    smpp.SendSMPP(mailoptions.to, mailoptions.from, mailoptions.text, function (_isDone, id) {
+
+            try {
+
+                if (_isDone) {
+
+                    logger.debug("Successfully send sms");
+
+
+
+
+                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text,undefined, function (done, result) {
+                            if (done) {
+                                logger.debug("engagement created successfully");
+                                if(mailoptions.reply_session){
+
+                                    CreateComment('sms','text',company, tenant, mailoptions.reply_session, mailoptions.author,result, function (done) {
+                                        if (!done) {
+                                            logger.error("comment creation failed");
+                                            return cb(true);
+                                        }else{
+                                            logger.debug("comment created successfully");
+                                            return cb(true);
+                                        }
+                                    });
+                                }
+                                else {
+
+
+                                    if (mailoptions.ticket) {
+
+                                        var ticket_type = 'action';
+                                        var ticket_priority = 'low';
+                                        var ticket_tags = [];
+
+                                        if (mailoptions.ticket_type) {
+                                            ticket_type = mailoptions.ticket_type;
+                                        }
+
+                                        if (mailoptions.ticket_priority) {
+                                            ticket_priority = mailoptions.ticket_priority;
+                                        }
+
+                                        if (mailoptions.ticket_tags) {
+                                            ticket_tags = mailoptions.ticket_tags;
+                                        }
+
+                                        CreateTicket("sms", sessionid, result.profile_id, company, tenant, ticket_type, mailoptions.text, mailoptions.text, ticket_priority, ticket_tags, function (done) {
+                                            if (done) {
+                                                logger.info("Create Ticket Completed ");
+                                            } else {
+                                                logger.error("Create Ticket Failed ");
+                                            }
+                                            return cb(true);
+                                        });
+                                    } else {
+
+                                        if (mailoptions.comment) {
+
+                                            UpdateComment(mailoptions.comment, id, function (done) {
+                                                if (done) {
+                                                    logger.info("Update Comment Completed ");
+
+                                                } else {
+
+                                                    logger.error("Update Comment Failed ");
+
+                                                }
+
+                                                return cb(true);
+                                            });
+
+                                        } else {
+                                            return cb(true);
+                                        }
+                                    }
+
+                                }
+                            } else {
+                                logger.error("engagement creation failed");
+                                return cb(false);
+                            }
+                        });
+
+
+
+                } else {
+
+                    logger.error("Send SMS Failed "+_error);
+                    return cb(false);
+
+                }
+            }
+            catch (excep) {
+
+                logger.error("Send SMS Failed "+excep);
+                return cb(false);
+            }
+
+        });
+
+
+};
 
 function SendRequest(company, tenant, mailoptions, cb){
 
@@ -76,7 +193,7 @@ function SendRequest(company, tenant, mailoptions, cb){
 
                         var sessionid=   arr[1].replace(/['"]+/g, '');
 
-                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text, function (done, result) {
+                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text,undefined, function (done, result) {
                             if (done) {
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){
@@ -237,18 +354,28 @@ function SendSMS(message, deliveryInfo, ack) {
                                     renderedTemplate=juice.inlineContent(renderedTemplate, resPickTemp.styles[i].content, juiceOptions);
                                     if(i==(resPickTemp.styles.length-1))
                                     {
-
-
                                         mailOptions.text = renderedTemplate;
 
-                                        SendRequest(company,tenant,mailOptions,function(done){
+                                        if(smpp){
 
-                                            if(!done)
-                                                ack.reject(true);
-                                            else
-                                                ack.acknowledge();
+                                            SendSMPP(company, tenant, mailOptions, function (done) {
 
-                                        });
+                                                if (!done)
+                                                    ack.reject(true);
+                                                else
+                                                    ack.acknowledge();
+
+                                            });
+                                        }else {
+                                            SendRequest(company, tenant, mailOptions, function (done) {
+
+                                                if (!done)
+                                                    ack.reject(true);
+                                                else
+                                                    ack.acknowledge();
+
+                                            });
+                                        }
                                     }
                                 }
                             }
@@ -256,17 +383,28 @@ function SendSMS(message, deliveryInfo, ack) {
                             {
                                 console.log("Rendering Done");
                                 mailOptions.text = outRendered;
-                                SendRequest(company,tenant,mailOptions,function(done){
+                                if(smpp){
+                                    SendSMPP(company, tenant, mailOptions, function (done) {
 
-                                    if(!done)
-                                        ack.reject(true);
-                                    else
-                                        ack.acknowledge();
+                                        if (!done)
+                                            ack.reject(true);
+                                        else
+                                            ack.acknowledge();
 
-                                });
+                                    });
+
+                                }else {
+                                    SendRequest(company, tenant, mailOptions, function (done) {
+
+                                        if (!done)
+                                            ack.reject(true);
+                                        else
+                                            ack.acknowledge();
+
+                                    });
+                                }
                             }
                         }
-
                     });
 
                 }else{
@@ -287,16 +425,29 @@ function SendSMS(message, deliveryInfo, ack) {
 
     }else{
 
-        SendRequest(company,tenant,mailOptions,function(done){
+        if(smpp) {
+            SendSMPP(company, tenant, mailOptions, function (done) {
 
-            if(!done)
-                ack.reject(true);
-            else
-                ack.acknowledge();
+                if (!done)
+                    ack.reject(true);
+                else
+                    ack.acknowledge();
 
 
+            });
+        }else{
+            SendRequest(company, tenant, mailOptions, function (done) {
 
-        });
+                if (!done)
+                    ack.reject(true);
+                else
+                    ack.acknowledge();
+
+
+            });
+
+
+        }
 
     }
 

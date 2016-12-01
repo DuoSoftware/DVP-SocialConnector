@@ -39,6 +39,7 @@ module.exports = {
     "domain": "localhost",
     "port": "4647",
     "smsQueueName": "SMSOUT",
+    "smsmode": "smpp",
     'twitterQueueName': "TWEETOUT",
     'facebookQueueName': "FACEBOOKOUT",
     "version": "1.0.0.0"
@@ -57,6 +58,26 @@ module.exports = {
 
 
   },
+
+  /*
+  "SMPPClient":{
+
+    "ip":"45.55.203.111",
+    "port":"2775",
+    "password":"pwd2",
+    "user":"smppclient2"
+
+  },
+*/
+  "SMPPClient":{
+
+    "ip":"81.201.83.10",
+    "port":"2777",
+    "password":"Veery@123",
+    "user":"veerysms"
+
+  },
+
 
 
   "LBServer" : {
