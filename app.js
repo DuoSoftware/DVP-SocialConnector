@@ -39,9 +39,9 @@ var server = restify.createServer({
 
 
 var https_options = {
-    ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    /*ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
     key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
+    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')*/
 };
 
 var https_server = restify.createServer(https_options);
@@ -158,11 +158,11 @@ server.post('DVP/API/:version/Social/Email', authorization({
     resource: "social",
     action: "write"
 }), emailService.CreateMailAccount);
-server.get('DVP/API/:version/Social/Emails', authorization({
+server.get('DVP/API/:version/Social/Email', authorization({
     resource: "social",
     action: "read"
 }), emailService.GetEmailAccount);
-server.get('DVP/API/:version/Social/Email/:id/', authorization({
+server.get('DVP/API/:version/Social/Emails', authorization({
     resource: "social",
     action: "read"
 }), emailService.GetEmailAccounts);
