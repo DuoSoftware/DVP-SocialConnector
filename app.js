@@ -158,11 +158,11 @@ server.post('DVP/API/:version/Social/Email', authorization({
     resource: "social",
     action: "write"
 }), emailService.CreateMailAccount);
-server.get('DVP/API/:version/Social/Emails', authorization({
+server.get('DVP/API/:version/Social/Email', authorization({
     resource: "social",
     action: "read"
 }), emailService.GetEmailAccount);
-server.get('DVP/API/:version/Social/Email/:id/', authorization({
+server.get('DVP/API/:version/Social/Emails', authorization({
     resource: "social",
     action: "read"
 }), emailService.GetEmailAccounts);
