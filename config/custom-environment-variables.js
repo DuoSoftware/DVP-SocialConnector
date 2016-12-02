@@ -53,13 +53,30 @@ module.exports = {
 
 	},
 
+    "SMPPClient":{
+
+        "ip":"SYS_SMPP_HOST",
+        "port":"SYS_SMPP_PORT",
+        "password":"SYS_SMPP_PASSWORD",
+        "user":"SYS_SMPP_USER"
+
+    },
+
+
+
 
     "Host":
     {
         "vdomain": "LB_FRONTEND",
         "domain": "HOST_NAME",
         "port": "HOST_USERSERVICE_PORT",
-        "version": "HOST_VERSION"
+        "version": "HOST_VERSION",
+        "smsQueueName": "SMS_QUEUE_NAME",
+        "smsmode": "SMS_MODE",
+        'twitterQueueName': "TWITTER_QUEUE_NAME",
+        'facebookQueueName': "FACEBOOK_QUEUE_NAME",
+
+
     },
 
     "LBServer" : {
