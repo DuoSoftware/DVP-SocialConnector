@@ -69,7 +69,7 @@ module.exports = {
     {
         "vdomain": "LB_FRONTEND",
         "domain": "HOST_NAME",
-        "port": "HOST_USERSERVICE_PORT",
+        "port": "HOST_SOCIALCONNECTOR_PORT",
         "version": "HOST_VERSION",
         "smsQueueName": "SMS_QUEUE_NAME",
         "smsmode": "SMS_MODE",
