@@ -74,7 +74,7 @@ module.exports = {
         "smsQueueName": "SMS_QUEUE_NAME",
         "smsmode": "SMS_MODE",
         'twitterQueueName': "TWITTER_QUEUE_NAME",
-        'facebookQueueName': "FACEBOOK_QUEUE_NAME",
+        'facebookQueueName': "FACEBOOK_QUEUE_NAME"
 
 
     },
