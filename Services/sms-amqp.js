@@ -24,10 +24,7 @@ var smpp;
 if(smsmode == 'smpp'){
 
     smpp = require('../Workers/smpp');
-
-
 }
-
 
 
 
