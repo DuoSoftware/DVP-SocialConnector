@@ -69,7 +69,7 @@ function CreateMailAccount(req, res) {
 
         } else {
 
-            jsonString = messageFormatter.FormatMessage(err, "Email saved successfully", false, email);
+            jsonString = messageFormatter.FormatMessage(err, "Email saved successfully", true, email);
         }
 
         res.end(jsonString);
@@ -167,7 +167,7 @@ function GetEmailAccounts(req,res){
             jsonString = messageFormatter.FormatMessage(err, "Get Email accounts failed", false, undefined);
         }else{
             if(email && email.length > 0) {
-                jsonString = messageFormatter.FormatMessage(undefined, "Get Email accounts Success", true, twitter);
+                jsonString = messageFormatter.FormatMessage(undefined, "Get Email accounts Success", true, email);
             }else{
 
                 jsonString = messageFormatter.FormatMessage(undefined, "No Email account found", false, undefined);
