@@ -6,7 +6,7 @@ var smpp = require('smpp');
 
 var smpphost = config.SMPPClient.ip;
 var smppport = config.SMPPClient.port;
-
+var didConnect = false;
 
 
 var session = new smpp.Session({host: smpphost, port: smppport});
@@ -19,7 +19,7 @@ session.on('connect', function(){
 
 
 
-    session.bind_receiver({
+    session.bind_transceiver({
         system_id: username,
         password: password,
         interface_version: 1,
