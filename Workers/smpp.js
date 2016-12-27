@@ -69,8 +69,8 @@ function connectSMPP() {
 var sendSMPP = function(from, to, text, cb) {
 
 
-    from = '+' + from.toString();
-    to   = '+' + to.toString();
+    from = from.toString();
+    to   = to.toString();
 
     session.submit_sm({
         source_addr:      from,
