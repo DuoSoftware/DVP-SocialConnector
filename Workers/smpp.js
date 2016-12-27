@@ -49,7 +49,7 @@ session.on('close', function(){
 
 session.on('error', function(error){
     console.log('smpp error', error)
-    didConnect = false;
+    didConnect = true;
 });
 
 
