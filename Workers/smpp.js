@@ -6,7 +6,7 @@ var smpp = require('smpp');
 
 var smpphost = config.SMPPClient.ip;
 var smppport = config.SMPPClient.port;
-
+var didConnect = false;
 
 
 var session = new smpp.Session({host: smpphost, port: smppport});
@@ -19,7 +19,7 @@ session.on('connect', function(){
 
 
 
-    session.bind_receiver({
+    session.bind_transceiver({
         system_id: username,
         password: password,
         interface_version: 1,
@@ -49,7 +49,8 @@ session.on('close', function(){
 
 session.on('error', function(error){
     console.log('smpp error', error)
-    didConnect = false;
+    didConnect = true;
+    process.exit(1);
 });
 
 
@@ -69,8 +70,8 @@ function connectSMPP() {
 var sendSMPP = function(from, to, text, cb) {
 
 
-    from = '+' + from.toString();
-    to   = '+' + to.toString();
+    from = from.toString();
+    to   = to.toString();
 
     session.submit_sm({
         source_addr:      from,
