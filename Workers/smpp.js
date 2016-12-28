@@ -50,6 +50,7 @@ session.on('close', function(){
 session.on('error', function(error){
     console.log('smpp error', error)
     didConnect = true;
+    process.exit(1);
 });
 
 
