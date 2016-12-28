@@ -24,10 +24,7 @@ var smpp;
 if(smsmode == 'smpp'){
 
     smpp = require('../Workers/smpp');
-
-
 }
-
 
 
 
@@ -65,7 +62,7 @@ if(validator.isIP(config.LBServer.ip))
 
 function SendSMPP(company, tenant, mailoptions, cb){
 
-    smpp.SendSMPP(mailoptions.to, mailoptions.from, mailoptions.text, function (_isDone, id) {
+    smpp.SendSMPP(mailoptions.from, mailoptions.to, mailoptions.text, function (_isDone, id) {
 
             try {
 
