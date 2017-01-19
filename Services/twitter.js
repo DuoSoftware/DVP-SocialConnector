@@ -33,7 +33,6 @@ function CreateTwitterAccount(req, res) {
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
 
-
     var twitter = Twitter({
 
         _id: req.body.id,
@@ -75,8 +74,7 @@ function CreateTwitterAccount(req, res) {
                 }
                 res.end(jsonString);
 
-            })
-
+            });
         }
     });
 }
@@ -289,8 +287,6 @@ function StreamTwitterMessages(req, res) {
 
     });
 };
-
-
 
 function UpdateTwitterAccount(req, res) {
 
