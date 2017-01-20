@@ -107,7 +107,7 @@ function TwitterStartCron(req, res) {
     RegisterCronJob(company, tenant, 10, req.body.id, mainServer, function (isSuccess) {
 
         if (isSuccess) {
-            jsonString = messageFormatter.FormatMessage(undefined, "Cron saved successfully", true, twee);
+            jsonString = messageFormatter.FormatMessage(undefined, "Cron saved successfully", true, undefined);
             res.end(jsonString);
         }
         else {
