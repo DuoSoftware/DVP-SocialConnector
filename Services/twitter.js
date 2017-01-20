@@ -56,10 +56,10 @@ function CreateTwitterAccount(req, res) {
             res.end(jsonString);
         } else {
 
-            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,engage._id);
+            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,twee._id);
 
             if (validator.isIP(config.LBServer.ip))
-                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,engage._id);
+                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,twee._id);
 
             RegisterCronJob(company,tenant,10,req.body.id,mainServer,function(isSuccess){
 
@@ -79,7 +79,7 @@ function CreateTwitterAccount(req, res) {
 
                             logger.info('Update twitter cron status success');
                         }
-                    })
+                    });
 
                     res.end(jsonString);
                 }
@@ -98,21 +98,17 @@ function TwitterStartCron(req, res) {
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
 
-
+var id = req.params.id;
     var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, id);
 
     if (validator.isIP(config.LBServer.ip))
         mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, id);
 
-    RegisterCronJob(company, tenant, 10, req.body.id, mainServer, function (isSuccess) {
+    RegisterCronJob(company, tenant, 10, id, mainServer, function (isSuccess) {
 
         if (isSuccess) {
             jsonString = messageFormatter.FormatMessage(undefined, "Cron saved successfully", true, undefined);
-            res.end(jsonString);
-        }
-        else {
-            jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, undefined);
-            Twitter.findOneAndUpdate({_id: req.params.id}, {cron: {enable: false}}, function (err, tww) {
+            Twitter.findOneAndUpdate({_id: req.params.id}, {cron: {enable: true}}, function (err, tww) {
                 if (err) {
 
                     logger.error('Update twitter cron status failed', err);
@@ -121,8 +117,11 @@ function TwitterStartCron(req, res) {
 
                     logger.info('Update twitter cron status success');
                 }
-            })
-
+            });
+            res.end(jsonString);
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, undefined);
             res.end(jsonString);
         }
     });
