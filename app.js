@@ -110,6 +110,15 @@ server.post('DVP/API/:version/Social/Twitter', authorization({
     resource: "social",
     action: "write"
 }), twitterService.CreateTwitterAccount);
+
+
+server.post('DVP/API/:version/Social/Twitter/:id/Cron/Start', authorization({
+    resource: "social",
+    action: "write"
+}), twitterService.TwitterStartCron);
+
+
+
 server.post('DVP/API/:version/Social/Twitter/:id/directmessages', authorization({
     resource: "social",
     action: "read"

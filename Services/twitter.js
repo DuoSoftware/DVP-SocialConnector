@@ -50,7 +50,7 @@ function CreateTwitterAccount(req, res) {
         status :true
     });
 
-    twitter.save(function (err, engage) {
+    twitter.save(function (err, twee) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Twitter save failed", false, undefined);
             res.end(jsonString);
@@ -61,23 +61,75 @@ function CreateTwitterAccount(req, res) {
             if (validator.isIP(config.LBServer.ip))
                 mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,id);
 
-
             RegisterCronJob(company,tenant,10,req.body.id,mainServer,function(isSuccess){
 
                 if(isSuccess) {
-                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, engage);
+                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, twee);
+                    res.end(jsonString);
                 }
                 else
                 {
-                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter saved but cron failed", false, engage);
+                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter saved but cron failed", false, twee);
+                    Twitter.findOneAndUpdate({_id: twee._id},{cron:{enable:false}},function(err,tww){
+                        if(err){
 
+                            logger.error('Update twitter cron status failed', err);
+
+                        }else{
+
+                            logger.info('Update twitter cron status success');
+                        }
+                    })
+
+                    res.end(jsonString);
                 }
-                res.end(jsonString);
-
             });
         }
     });
 }
+
+
+
+function TwitterStartCron(req, res) {
+
+
+    logger.debug("DVP-SocialConnector.TwitterStartCron Internal method ");
+    var jsonString;
+    var tenant = parseInt(req.user.tenant);
+    var company = parseInt(req.user.company);
+
+
+    var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, id);
+
+    if (validator.isIP(config.LBServer.ip))
+        mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, id);
+
+    RegisterCronJob(company, tenant, 10, req.body.id, mainServer, function (isSuccess) {
+
+        if (isSuccess) {
+            jsonString = messageFormatter.FormatMessage(undefined, "Cron saved successfully", true, twee);
+            res.end(jsonString);
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, twee);
+            Twitter.findOneAndUpdate({_id: req.params.id}, {cron: {enable: false}}, function (err, tww) {
+                if (err) {
+
+                    logger.error('Update twitter cron status failed', err);
+
+                } else {
+
+                    logger.info('Update twitter cron status success');
+                }
+            })
+
+            res.end(jsonString);
+        }
+    });
+
+}
+
+
 
 function DeleteTwitterAccount(req, res) {
 
@@ -708,3 +760,4 @@ module.exports.UpdateTwitterAccount = UpdateTwitterAccount;
 module.exports.GetTwitterAccount = GetTwitterAccount;
 module.exports.GetTwitterAccounts = GetTwitterAccounts;
 module.exports.StreamTwitterMessages = StreamTwitterMessages;
+module.exports.TwitterStartCron = TwitterStartCron;
