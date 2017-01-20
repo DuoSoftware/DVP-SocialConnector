@@ -88,8 +88,6 @@ function CreateTwitterAccount(req, res) {
     });
 }
 
-
-
 function TwitterStartCron(req, res) {
 
 
@@ -128,8 +126,6 @@ function TwitterStartCron(req, res) {
     });
 
 }
-
-
 
 function DeleteTwitterAccount(req, res) {
 
