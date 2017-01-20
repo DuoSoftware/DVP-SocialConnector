@@ -111,7 +111,7 @@ function TwitterStartCron(req, res) {
             res.end(jsonString);
         }
         else {
-            jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, twee);
+            jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, undefined);
             Twitter.findOneAndUpdate({_id: req.params.id}, {cron: {enable: false}}, function (err, tww) {
                 if (err) {
 
