@@ -11,7 +11,7 @@ var CreateTicket = require('../Workers/common').CreateTicket;
 var RegisterCronJob = require('../Workers/common').RegisterCronJob;
 var util = require('util');
 var validator = require('validator');
-
+var format = require("stringformat");
 
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
@@ -56,10 +56,10 @@ function CreateTwitterAccount(req, res) {
             res.end(jsonString);
         } else {
 
-            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,id);
+            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,engage._id);
 
             if (validator.isIP(config.LBServer.ip))
-                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,id);
+                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,engage._id);
 
             RegisterCronJob(company,tenant,10,req.body.id,mainServer,function(isSuccess){
 

@@ -122,7 +122,7 @@ module.exports = {
     //
 
 
-    "cronurl": "192.168.0.27",
+    "cronurl": "scheduleworker.app.veery.cloudw",
     "cronport": '8080',
     "cronversion":"1.0.0.0",
 
