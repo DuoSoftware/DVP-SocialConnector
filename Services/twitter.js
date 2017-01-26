@@ -457,7 +457,7 @@ function LoadTwitterMessages(req, res) {
 
             if (twitter) {
 
-                logger.info('twitter account found', twitter);
+                logger.info('twitter account found');
 
 
                 jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
