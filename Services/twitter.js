@@ -444,14 +444,20 @@ function LoadTwitterMessages(req, res) {
     var company = parseInt(req.user.company);
 
     Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function(err, twitter) {
+
+
         if (err) {
 
             jsonString = messageFormatter.FormatMessage(err, "Get Twitter Failed", false, undefined);
             res.end(jsonString);
 
+            logger.Error(err);
+
         }else {
 
             if (twitter) {
+
+                logger.info('twitter account found');
 
 
                 jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
@@ -473,6 +479,9 @@ function LoadTwitterMessages(req, res) {
                 client.get('direct_messages', params, function(error, tweets, response){
                     if (!error) {
                         //console.log(tweets);
+
+
+
                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets found", true, undefined);
 
 
@@ -532,6 +541,8 @@ function LoadTwitterMessages(req, res) {
                     }else{
                         jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                         res.end(jsonString);
+                        logger.info('twitter client error', error);
+
                     }
                 });
 
@@ -541,6 +552,7 @@ function LoadTwitterMessages(req, res) {
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                 res.end(jsonString);
 
+                logger.error("No Twitter Found");
             }
         }
 
