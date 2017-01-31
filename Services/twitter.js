@@ -12,7 +12,8 @@ var RegisterCronJob = require('../Workers/common').RegisterCronJob;
 var util = require('util');
 var validator = require('validator');
 var format = require("stringformat");
-
+var qs = require('querystring');
+var request = require("request");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
@@ -756,6 +757,30 @@ function ReplyTweet(req, res){
 }
 
 
+function GetTwitterOauthToken(req, res) {
+
+
+    var requestTokenUrl = 'https://api.twitter.com/oauth/request_token';
+    var accessTokenUrl = 'https://api.twitter.com/oauth/access_token';
+    var profileUrl = 'https://api.twitter.com/1.1/account/verify_credentials.json';
+
+
+    var requestTokenOauth = {
+        consumer_key: config.TWITTER_KEY,
+        consumer_secret: config.TWITTER_SECRET,
+        callback: config.TWITTER_CALLBACK_URL,
+    };
+
+    // Step 1. Obtain request token for the authorization popup.
+    request.post({url: requestTokenUrl, oauth: requestTokenOauth}, function (err, response, body) {
+        var oauthToken = qs.parse(body);
+
+        // Step 2. Send OAuth token back to open the authorization screen.
+        res.send(oauthToken);
+    });
+}
+
+
 
 module.exports.CreateTwitterAccount = CreateTwitterAccount;
 module.exports.ActivateTwitterAccount = ActivateTwitterAccount;
@@ -768,3 +793,4 @@ module.exports.GetTwitterAccount = GetTwitterAccount;
 module.exports.GetTwitterAccounts = GetTwitterAccounts;
 module.exports.StreamTwitterMessages = StreamTwitterMessages;
 module.exports.TwitterStartCron = TwitterStartCron;
+module.exports.GetTwitterOauthToken = GetTwitterOauthToken;
