@@ -11,8 +11,9 @@ var CreateTicket = require('../Workers/common').CreateTicket;
 var RegisterCronJob = require('../Workers/common').RegisterCronJob;
 var util = require('util');
 var validator = require('validator');
-
-
+var format = require("stringformat");
+var qs = require('querystring');
+var request = require("request");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
@@ -33,7 +34,6 @@ function CreateTwitterAccount(req, res) {
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
 
-
     var twitter = Twitter({
 
         _id: req.body.id,
@@ -51,34 +51,80 @@ function CreateTwitterAccount(req, res) {
         status :true
     });
 
-    twitter.save(function (err, engage) {
+    twitter.save(function (err, twee) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Twitter save failed", false, undefined);
             res.end(jsonString);
         } else {
 
-            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,id);
+            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,twee._id);
 
             if (validator.isIP(config.LBServer.ip))
-                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,id);
-
+                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,twee._id);
 
             RegisterCronJob(company,tenant,10,req.body.id,mainServer,function(isSuccess){
 
                 if(isSuccess) {
-                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, engage);
+                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, twee);
+                    res.end(jsonString);
                 }
                 else
                 {
-                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter saved but cron failed", false, engage);
+                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter saved but cron failed", false, twee);
+                    Twitter.findOneAndUpdate({_id: twee._id},{cron:{enable:false}},function(err,tww){
+                        if(err){
 
+                            logger.error('Update twitter cron status failed', err);
+
+                        }else{
+
+                            logger.info('Update twitter cron status success');
+                        }
+                    });
+
+                    res.end(jsonString);
                 }
-                res.end(jsonString);
-
-            })
-
+            });
         }
     });
+}
+
+function TwitterStartCron(req, res) {
+
+
+    logger.debug("DVP-SocialConnector.TwitterStartCron Internal method ");
+    var jsonString;
+    var tenant = parseInt(req.user.tenant);
+    var company = parseInt(req.user.company);
+
+var id = req.params.id;
+    var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, id);
+
+    if (validator.isIP(config.LBServer.ip))
+        mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, id);
+
+    RegisterCronJob(company, tenant, 10, id, mainServer, function (isSuccess) {
+
+        if (isSuccess) {
+            jsonString = messageFormatter.FormatMessage(undefined, "Cron saved successfully", true, undefined);
+            Twitter.findOneAndUpdate({_id: req.params.id}, {cron: {enable: true}}, function (err, tww) {
+                if (err) {
+
+                    logger.error('Update twitter cron status failed', err);
+
+                } else {
+
+                    logger.info('Update twitter cron status success');
+                }
+            });
+            res.end(jsonString);
+        }
+        else {
+            jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, undefined);
+            res.end(jsonString);
+        }
+    });
+
 }
 
 function DeleteTwitterAccount(req, res) {
@@ -290,8 +336,6 @@ function StreamTwitterMessages(req, res) {
     });
 };
 
-
-
 function UpdateTwitterAccount(req, res) {
 
 
@@ -401,14 +445,20 @@ function LoadTwitterMessages(req, res) {
     var company = parseInt(req.user.company);
 
     Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function(err, twitter) {
+
+
         if (err) {
 
             jsonString = messageFormatter.FormatMessage(err, "Get Twitter Failed", false, undefined);
             res.end(jsonString);
 
+            logger.Error(err);
+
         }else {
 
             if (twitter) {
+
+                logger.info('twitter account found');
 
 
                 jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
@@ -430,6 +480,9 @@ function LoadTwitterMessages(req, res) {
                 client.get('direct_messages', params, function(error, tweets, response){
                     if (!error) {
                         //console.log(tweets);
+
+
+
                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets found", true, undefined);
 
 
@@ -489,6 +542,8 @@ function LoadTwitterMessages(req, res) {
                     }else{
                         jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                         res.end(jsonString);
+                        logger.info('twitter client error', error);
+
                     }
                 });
 
@@ -498,6 +553,7 @@ function LoadTwitterMessages(req, res) {
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                 res.end(jsonString);
 
+                logger.error("No Twitter Found");
             }
         }
 
@@ -701,6 +757,30 @@ function ReplyTweet(req, res){
 }
 
 
+function GetTwitterOauthToken(req, res) {
+
+
+    var requestTokenUrl = 'https://api.twitter.com/oauth/request_token';
+    var accessTokenUrl = 'https://api.twitter.com/oauth/access_token';
+    var profileUrl = 'https://api.twitter.com/1.1/account/verify_credentials.json';
+
+
+    var requestTokenOauth = {
+        consumer_key: config.TWITTER_KEY,
+        consumer_secret: config.TWITTER_SECRET,
+        callback: config.TWITTER_CALLBACK_URL,
+    };
+
+    // Step 1. Obtain request token for the authorization popup.
+    request.post({url: requestTokenUrl, oauth: requestTokenOauth}, function (err, response, body) {
+        var oauthToken = qs.parse(body);
+
+        // Step 2. Send OAuth token back to open the authorization screen.
+        res.send(oauthToken);
+    });
+}
+
+
 
 module.exports.CreateTwitterAccount = CreateTwitterAccount;
 module.exports.ActivateTwitterAccount = ActivateTwitterAccount;
@@ -712,3 +792,5 @@ module.exports.UpdateTwitterAccount = UpdateTwitterAccount;
 module.exports.GetTwitterAccount = GetTwitterAccount;
 module.exports.GetTwitterAccounts = GetTwitterAccounts;
 module.exports.StreamTwitterMessages = StreamTwitterMessages;
+module.exports.TwitterStartCron = TwitterStartCron;
+module.exports.GetTwitterOauthToken = GetTwitterOauthToken;

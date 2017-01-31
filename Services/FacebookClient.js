@@ -833,17 +833,18 @@ var RealTimeComments = function (id, fbData) {
                 var company = parseInt(fbConnector.company);
                 var tenant = parseInt(fbConnector.tenant);
 
-                var from = {
-                    "name": fbData.sender_name,
-                    "id": fbData.sender_id
-                };
 
                 var to = {
                     "id": id,
                     "name": fbData.firstName + " " + fbData.lastName
                 };
 
-                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.comment_id, fbData.message, function (isSuccess, engagement) {
+                var user = {};
+                user.name = fbData.sender_name;
+                user.id = fbData.sender_id;
+                user.channel = 'facebook';
+
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.comment_id, fbData.message,user, function (isSuccess, engagement) {
                     if (isSuccess) {
                         CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
                             if (!done) {
