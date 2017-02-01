@@ -3,7 +3,7 @@ module.exports = {
 
   TWITTER_KEY: 'dUTFwOCHWXpvuLSsgQ7zvOPRK',
   TWITTER_SECRET: 'KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9',
-  TWITTER_CALLBACK_URL:  'http://localhost:63342/',
+  TWITTER_CALLBACK_URL:  'http://localhost:63342/DVP-AdminConsole/#/console/social/twitter',
 
 
   "DB": {

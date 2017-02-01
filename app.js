@@ -115,6 +115,11 @@ server.post('DVP/API/:version/Social/TwitterToken', authorization({
 }), twitterService.GetTwitterOauthToken);
 
 
+server.post('DVP/API/:version/Social/Profile', authorization({
+    resource: "social",
+    action: "write"
+}), twitterService.GetProfile);
+
 server.post('DVP/API/:version/Social/Twitter', authorization({
     resource: "social",
     action: "write"

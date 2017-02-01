@@ -17,14 +17,50 @@ var request = require("request");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-var _twitterConsumerKey = "dUTFwOCHWXpvuLSsgQ7zvOPRK";
-var _twitterConsumerSecret = "KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9";
+//var _twitterConsumerKey = "dUTFwOCHWXpvuLSsgQ7zvOPRK";
+//var _twitterConsumerSecret = "KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9";
 
-
+var oauth = require('oauth');
 var serverID = config.Host.ServerID;
 var serverType = config.Host.ServerType;
 
 //http://localhost:3636/DVP/API/1.0.0.0/TicketByEngagement/754236638146859008/Comment
+
+function GetProfile(req, res) {
+
+    // var consumer = new oauth.OAuth(
+    //     "https://twitter.com/oauth/request_token", "https://twitter.com/oauth/access_token",
+    //     req.body.oauth_token, req.body.oauth_verifier, "1.0A", "http://127.0.0.1:8080/sessions/callback", "HMAC-SHA1");
+    //
+    // consumer.get("https://api.twitter.com/1.1/account/verify_credentials.json", req.body.oauth_token, req.body.oauth_verifier, function (error, data, response) {
+    //     if (error) {
+    //         res.redirect('/sessions/connect');
+    //         // res.send("Error getting twitter screen name : " + util.inspect(error), 500);
+    //     } else {
+    //         var parsedData = JSON.parse(data);
+    //
+    //         var data = {
+    //             id: parsedData.id_str,
+    //             name: parsedData.name,
+    //             screen_name: parsedData.screen_name,
+    //             access_token_key: req.session.oauthAccessToken,
+    //             access_token_secret: req.session.oauthAccessTokenSecret
+    //         };
+    //     }}
+    //     );
+    var client = new TwitterClient({
+        consumer_key: config.TWITTER_KEY,
+        consumer_secret: config.TWITTER_SECRET,
+        access_token_key: req.body.oauth_token,
+        access_token_secret: req.body.oauth_verifier
+    });
+
+    client.get('direct_messages', function(error, tweets, response) {
+        if(error) throw error;
+        console.log(tweets);  // The favorites.
+        console.log(response);  // Raw response object.
+    });
+}
 
 function CreateTwitterAccount(req, res) {
 
@@ -768,20 +804,32 @@ function GetTwitterOauthToken(req, res) {
     var requestTokenOauth = {
         consumer_key: config.TWITTER_KEY,
         consumer_secret: config.TWITTER_SECRET,
-        callback: config.TWITTER_CALLBACK_URL,
+        callback: config.TWITTER_CALLBACK_URL
     };
 
     // Step 1. Obtain request token for the authorization popup.
     request.post({url: requestTokenUrl, oauth: requestTokenOauth}, function (err, response, body) {
-        var oauthToken = qs.parse(body);
+        var jsonString ="";
+        if(err){
+            jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, response);
+            res.end(jsonString);
+        }
+        else {
 
-        // Step 2. Send OAuth token back to open the authorization screen.
-        res.send(oauthToken);
+            var oauthToken = qs.parse(body);
+
+            // Step 2. Send OAuth token back to open the authorization screen.
+            //res.send(oauthToken);
+            jsonString = messageFormatter.FormatMessage(undefined, "Twitter Found", true, oauthToken);
+            res.end(jsonString);
+        }
+
     });
 }
 
 
 
+module.exports.GetProfile = GetProfile;
 module.exports.CreateTwitterAccount = CreateTwitterAccount;
 module.exports.ActivateTwitterAccount = ActivateTwitterAccount;
 module.exports.LoadTwitterMessages = LoadTwitterMessages;
