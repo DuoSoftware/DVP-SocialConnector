@@ -39,8 +39,9 @@ queueConnection.on('ready', function () {
 
             //message = JSON.parse(message.data.toString());
 
+            console.log(message);
             if (!message || !message.to || !message.from ||  !message.body || !message.company || !message.tenant) {
-                console.log('Invalid message, skipping');
+                console.log('Twitter - Invalid message, skipping');
                 return ack.acknowledge();
             }
             ///////////////////////////create body/////////////////////////////////////////////////

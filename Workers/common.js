@@ -307,7 +307,7 @@ function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
             Reference: id,
             Description: "Direct message twitter",
-            CronePattern: format( "* */{0} * * * *",time),
+            CronePattern: format( "*/{0} * * * *",time),
             CallbackURL: mainServer,
             CallbackData: ""
 

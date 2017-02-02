@@ -31,7 +31,7 @@ queueConnection.on('ready', function () {
         }, function (message, headers, deliveryInfo, ack) {
 
             //message = JSON.parse(message.data.toString());
-
+            console.log(message);
             if (!message || !message.to || !message.from || !message.reply_session ||  !message.body || !message.company || !message.tenant) {
                 console.log('FB Client AMQP-Invalid message, skipping');
                 return ack.acknowledge();

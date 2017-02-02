@@ -72,8 +72,30 @@ function GetProfile(req, res) {
 
         client.get('account/verify_credentials', function (error, tweets, response) {
             if (error) throw error;
-            console.log(tweets);  // The favorites.
-            console.log(response);  // Raw response object.
+            var tweetProfile = {};
+            tweetProfile.id = tweets.id;
+            tweetProfile.avatar = tweets.profile_image_url;
+            tweetProfile.name = tweets.name;
+            tweetProfile.access_token_key = accessToken.oauth_token;
+            tweetProfile.access_token_secret = accessToken.oauth_token_secret;
+
+            /*var jsonString = "";
+             if (error) {
+             jsonString = messageFormatter.FormatMessage(undefined, "Fail To Get Profile", false, error);
+             }
+             else {
+             jsonString = messageFormatter.FormatMessage(undefined, "Profile", true, tweetProfile);
+             }
+             res.end(jsonString);*/
+
+            req.body.id = tweets.id;
+            req.body.name = tweets.name;
+            req.body.access_token_key = accessToken.oauth_token;
+            req.body.access_token_secret = accessToken.oauth_token_secret;
+            req.body.ticket_type = 'question';
+            req.body.ticket_tags = [];
+            req.body.ticket_priority = 'normal';
+            CreateTwitterAccount(req, res)
         });
 
     });
@@ -103,7 +125,7 @@ function CreateTwitterAccount(req, res) {
         ticket_priority: req.body.ticket_priority,
         created_at: Date.now(),
         updated_at: Date.now(),
-        status :true
+        status: true
     });
 
     twitter.save(function (err, twee) {
@@ -112,26 +134,25 @@ function CreateTwitterAccount(req, res) {
             res.end(jsonString);
         } else {
 
-            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version,twee._id);
+            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, twee._id);
 
             if (validator.isIP(config.LBServer.ip))
-                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version,twee._id);
+                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, twee._id);
 
-            RegisterCronJob(company,tenant,10,req.body.id,mainServer,function(isSuccess){
+            RegisterCronJob(company, tenant, 10, req.body.id, mainServer, function (isSuccess) {
 
-                if(isSuccess) {
+                if (isSuccess) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, twee);
                     res.end(jsonString);
                 }
-                else
-                {
+                else {
                     jsonString = messageFormatter.FormatMessage(undefined, "Twitter saved but cron failed", false, twee);
-                    Twitter.findOneAndUpdate({_id: twee._id},{cron:{enable:false}},function(err,tww){
-                        if(err){
+                    Twitter.findOneAndUpdate({_id: twee._id}, {cron: {enable: false}}, function (err, tww) {
+                        if (err) {
 
                             logger.error('Update twitter cron status failed', err);
 
-                        }else{
+                        } else {
 
                             logger.info('Update twitter cron status success');
                         }
@@ -152,7 +173,7 @@ function TwitterStartCron(req, res) {
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
 
-var id = req.params.id;
+    var id = req.params.id;
     var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, id);
 
     if (validator.isIP(config.LBServer.ip))
@@ -191,14 +212,14 @@ function DeleteTwitterAccount(req, res) {
     var tenant = parseInt(req.user.tenant);
     var jsonString;
     var twitter = Twitter({
-        status :false,
+        status: false,
         updated_at: Date.now()
     });
 
-    Twitter.findOneAndUpdate({_id: req.params.id,company: company, tenant: tenant},twitter, function(err, twitter) {
+    Twitter.findOneAndUpdate({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Delete Twitter account failed", false, undefined);
-        }else{
+        } else {
             jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, twitter);
         }
         res.end(jsonString);
@@ -214,14 +235,14 @@ function ActivateTwitterAccount(req, res) {
     var tenant = parseInt(req.user.tenant);
     var jsonString;
     var twitter = Twitter({
-        status :true,
+        status: true,
         updated_at: Date.now()
     });
 
-    Twitter.findOneAndUpdate({_id: req.params.id,company: company, tenant: tenant},twitter, function(err, twitter) {
+    Twitter.findOneAndUpdate({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Activate Twitter account failed", false, undefined);
-        }else{
+        } else {
             jsonString = messageFormatter.FormatMessage(undefined, "Activate Twitter account Success", true, twitter);
         }
         res.end(jsonString);
@@ -236,13 +257,13 @@ function StreamTwitterMessages(req, res) {
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
 
-    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function(err, twitter) {
+    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function (err, twitter) {
         if (err) {
 
             jsonString = messageFormatter.FormatMessage(err, "Get Twitter Failed", false, undefined);
             res.end(jsonString);
 
-        }else {
+        } else {
 
             if (twitter) {
 
@@ -310,7 +331,6 @@ function StreamTwitterMessages(req, res) {
                                         user.avatar = item.user.profile_image_url;
                                         user.channel = 'twitter';
                                         user.id = item.user.id_str;
-
 
 
                                         CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, user, function (isSuccess, result) {
@@ -401,7 +421,6 @@ function UpdateTwitterAccount(req, res) {
     var jsonString;
 
 
-
     var twitter = Twitter({
 
 
@@ -412,10 +431,10 @@ function UpdateTwitterAccount(req, res) {
 
     });
 
-    Twitter.findOneAndUpdate({_id: req.params.id,company: company, tenant: tenant},twitter, function(err, twitter) {
+    Twitter.findOneAndUpdate({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Update Twitter account failed", false, undefined);
-        }else{
+        } else {
             jsonString = messageFormatter.FormatMessage(undefined, "Update Twitter account Success", true, twitter);
         }
         res.end(jsonString);
@@ -427,23 +446,23 @@ function UpdateTwitterAccount(req, res) {
 /*function DeleteTwitterAccount(req,res){
 
 
-    logger.debug("DVP-SocialConnector.DeleteTwitterAccount Internal method ");
+ logger.debug("DVP-SocialConnector.DeleteTwitterAccount Internal method ");
 
-    var company = parseInt(req.user.company);
-    var tenant = parseInt(req.user.tenant);
-    var jsonString;
-    Twitter.findOneAndRemove({_id: req.params.id,company: company, tenant: tenant}, function(err, twitter) {
-        if (err) {
-            jsonString = messageFormatter.FormatMessage(err, "Delete Twitter account failed", false, undefined);
-        }else{
-            jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, twitter);
-        }
-        res.end(jsonString);
-    });
+ var company = parseInt(req.user.company);
+ var tenant = parseInt(req.user.tenant);
+ var jsonString;
+ Twitter.findOneAndRemove({_id: req.params.id,company: company, tenant: tenant}, function(err, twitter) {
+ if (err) {
+ jsonString = messageFormatter.FormatMessage(err, "Delete Twitter account failed", false, undefined);
+ }else{
+ jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, twitter);
+ }
+ res.end(jsonString);
+ });
 
-};*/
+ };*/
 
-function GetTwitterAccount(req,res){
+function GetTwitterAccount(req, res) {
 
 
     logger.debug("DVP-SocialConnector.GetTwitterAccount Internal method ");
@@ -451,13 +470,13 @@ function GetTwitterAccount(req,res){
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
-    Twitter.findOne({_id: req.params.id,company: company, tenant: tenant}, function(err, twitter) {
+    Twitter.findOne({_id: req.params.id, company: company, tenant: tenant}, function (err, twitter) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Twitter account failed", false, undefined);
-        }else{
-            if(twitter) {
+        } else {
+            if (twitter) {
                 jsonString = messageFormatter.FormatMessage(undefined, "Get Twitter account Success", true, twitter);
-            }else{
+            } else {
 
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter account found", false, undefined);
             }
@@ -467,7 +486,7 @@ function GetTwitterAccount(req,res){
 
 };
 
-function GetTwitterAccounts(req,res){
+function GetTwitterAccounts(req, res) {
 
 
     logger.debug("DVP-SocialConnector.GetTwitterAccounts Internal method ");
@@ -475,13 +494,13 @@ function GetTwitterAccounts(req,res){
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
-    Twitter.find({company: company, tenant: tenant}, function(err, twitter) {
+    Twitter.find({company: company, tenant: tenant}, function (err, twitter) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Get Twitter accounts failed", false, undefined);
-        }else{
-            if(twitter && twitter.length > 0) {
+        } else {
+            if (twitter && twitter.length > 0) {
                 jsonString = messageFormatter.FormatMessage(undefined, "Get Twitter accounts Success", true, twitter);
-            }else{
+            } else {
 
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter account found", false, undefined);
             }
@@ -499,7 +518,7 @@ function LoadTwitterMessages(req, res) {
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
 
-    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function(err, twitter) {
+    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function (err, twitter) {
 
 
         if (err) {
@@ -509,7 +528,7 @@ function LoadTwitterMessages(req, res) {
 
             logger.Error(err);
 
-        }else {
+        } else {
 
             if (twitter) {
 
@@ -529,30 +548,38 @@ function LoadTwitterMessages(req, res) {
 
                 var params = {screen_name: 'nodejs', trim_user: true};
 
-                if(twitter.direct_messages_since > 0)
-                    params = {screen_name: 'nodejs', trim_user: true, since_id: twitter.direct_messages_since, count: 200};
+                if (twitter.direct_messages_since > 0)
+                    params = {
+                        screen_name: 'nodejs',
+                        trim_user: true,
+                        since_id: twitter.direct_messages_since,
+                        count: 200
+                    };
 
-                client.get('direct_messages', params, function(error, tweets, response){
+                client.get('direct_messages', params, function (error, tweets, response) {
                     if (!error) {
                         //console.log(tweets);
-
 
 
                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets found", true, undefined);
 
 
-                        if(util.isArray(tweets) && tweets.length >0) {
+                        if (util.isArray(tweets) && tweets.length > 0) {
 
                             var since_id = tweets[0].id_str;
 
                             twitter.direct_messages_since = since_id;
 
-                            Twitter.findOneAndUpdate({company: company, tenant: tenant, _id: req.params.id}, {$set:{direct_messages_since:since_id}}, function(err, doc){
-                                if(err){
+                            Twitter.findOneAndUpdate({
+                                company: company,
+                                tenant: tenant,
+                                _id: req.params.id
+                            }, {$set: {direct_messages_since: since_id}}, function (err, doc) {
+                                if (err) {
 
-                                    logger.error("Update since id failed"+ err);
+                                    logger.error("Update since id failed" + err);
 
-                                }else{
+                                } else {
 
 
                                     logger.debug("Update since id successfully");
@@ -560,7 +587,7 @@ function LoadTwitterMessages(req, res) {
                                     tweets.forEach(function (item) {
 
 
-                                        CreateEngagement("twitter", company, tenant, item.sender_screen_name, item.recipient_screen_name, "inbound", item.id_str, item.text,undefined, function (isSuccess, result) {
+                                        CreateEngagement("twitter", company, tenant, item.sender_screen_name, item.recipient_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
 
                                             if (isSuccess) {
 
@@ -594,7 +621,7 @@ function LoadTwitterMessages(req, res) {
 
                         res.end(jsonString);
 
-                    }else{
+                    } else {
                         jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                         res.end(jsonString);
                         logger.info('twitter client error', error);
@@ -603,7 +630,7 @@ function LoadTwitterMessages(req, res) {
                 });
 
 
-            }else{
+            } else {
 
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                 res.end(jsonString);
@@ -624,28 +651,28 @@ function LoadTweets(req, res) {
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
 
-    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function(err, twitter) {
+    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function (err, twitter) {
         if (err) {
 
             jsonString = messageFormatter.FormatMessage(err, "Get Twitter Failed", false, undefined);
             res.end(jsonString);
 
-        }else {
+        } else {
             if (twitter) {
                 jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
                 var ticket_type = 'question';
                 var ticket_tags = [];
                 var ticket_priority = 'low';
 
-                if(twitter.ticket_type){
+                if (twitter.ticket_type) {
                     ticket_type = ticket_type;
                 }
 
-                if(twitter.ticket_tags){
+                if (twitter.ticket_tags) {
                     ticket_tags = ticket_tags;
                 }
 
-                if(twitter.ticket_priority){
+                if (twitter.ticket_priority) {
                     ticket_priority = ticket_priority;
                 }
 
@@ -656,13 +683,13 @@ function LoadTweets(req, res) {
                     access_token_secret: twitter.access_token_secret
                 });
                 var params = {screen_name: 'nodejs', trim_user: true};
-                if(twitter.tweet_since > 0)
+                if (twitter.tweet_since > 0)
                     params = {screen_name: 'nodejs', since_id: twitter.tweet_since, count: 200};
-                client.get('statuses/mentions_timeline', params, function(error, tweets, response){
+                client.get('statuses/mentions_timeline', params, function (error, tweets, response) {
                     if (!error) {
                         //console.log(tweets);
                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets found", true, undefined);
-                        if(util.isArray(tweets) && tweets.length >0) {
+                        if (util.isArray(tweets) && tweets.length > 0) {
                             var since_id = tweets[0].id_str;
                             twitter.tweet_since = since_id;
                             Twitter.findOneAndUpdate({
@@ -684,11 +711,11 @@ function LoadTweets(req, res) {
                                             if (isSuccess) {
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
-                                                if(item.in_reply_to_status_id_str) {
-                                                    CreateComment('twitter','tweets',company, tenant,item.in_reply_to_status_id_str, undefined,result, function (done) {
+                                                if (item.in_reply_to_status_id_str) {
+                                                    CreateComment('twitter', 'tweets', company, tenant, item.in_reply_to_status_id_str, undefined, result, function (done) {
                                                         if (!done) {
 
-                                                            CreateTicket("twitter", item.id_str, result.profile_id, company, tenant,  ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
+                                                            CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
                                                                 if (done) {
                                                                     logger.info("Twitter Ticket Added successfully " + item.id_str);
 
@@ -698,16 +725,16 @@ function LoadTweets(req, res) {
 
                                                                 }
                                                             });
-                                                        }else{
+                                                        } else {
 
                                                             logger.info("Twitter Comment Added successfully " + item.id_str);
                                                         }
                                                     })
-                                                }else {
+                                                } else {
                                                     /////////////////////////////////////////////create ticket directly//////////////////////////
                                                     //CreateTicket("sms",sessionid,sessiondata["CompanyId"],sessiondata["TenantId"],smsData["type"], smsData["subject"], smsData["description"],smsData["priority"],smsData["tags"],function(success, result){});
 
-                                                    CreateTicket("twitter", item.id_str,result.profile_id,company, tenant, ticket_type, item.text,item.text, ticket_priority,ticket_tags, function (done) {
+                                                    CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
                                                         if (done) {
 
 
@@ -732,17 +759,17 @@ function LoadTweets(req, res) {
                                     });
                                 }
                             });
-                        }else{
+                        } else {
                             jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                             res.end(jsonString);
                         }
-                    }else{
+                    } else {
                         jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                         res.end(jsonString);
                     }
                 });
 
-            }else{
+            } else {
 
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                 res.end(jsonString);
@@ -752,19 +779,19 @@ function LoadTweets(req, res) {
     });
 };
 
-function ReplyTweet(req, res){
+function ReplyTweet(req, res) {
 
     logger.debug("DVP-SocialConnector.ReplyTweet Internal method ");
     var jsonString;
     var tenant = parseInt(req.user.tenant);
     var company = parseInt(req.user.company);
-    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function(err, twitter) {
+    Twitter.findOne({company: company, tenant: tenant, _id: req.params.id}, function (err, twitter) {
         if (err) {
 
             jsonString = messageFormatter.FormatMessage(err, "Get Twitter Failed", false, undefined);
             res.end(jsonString);
 
-        }else {
+        } else {
             if (twitter) {
                 jsonString = messageFormatter.FormatMessage(err, "Get Twitter Successful", true, twitter);
                 var client = new TwitterClient({
@@ -773,19 +800,22 @@ function ReplyTweet(req, res){
                     access_token_key: twitter.access_token_key,
                     access_token_secret: twitter.access_token_secret
                 });
-                var params = {status: "@"+req.body.to+" "+req.body.message,in_reply_to_status_id:req.params.tid};
-                client.post('statuses/update', params, function(error, tweets, response){
+                var params = {
+                    status: "@" + req.body.to + " " + req.body.message,
+                    in_reply_to_status_id: req.params.tid
+                };
+                client.post('statuses/update', params, function (error, tweets, response) {
                     if (!error) {
                         //console.log(tweets);
 
 
-                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, req.body.message,undefined, function (isSuccess, result) {
+                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, req.body.message, undefined, function (isSuccess, result) {
 
                             if (isSuccess) {
-                                CreateComment('twitter','out_tweets',company, tenant,req.params.tid, undefined,result, function (done) {
-                                    if(done){
+                                CreateComment('twitter', 'out_tweets', company, tenant, req.params.tid, undefined, result, function (done) {
+                                    if (done) {
                                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets successfully replied and comment created", true, result);
-                                    }else{
+                                    } else {
                                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets successfully replied and comment failed", true, result);
                                     }
                                     res.end(jsonString);
@@ -796,12 +826,12 @@ function ReplyTweet(req, res){
                             }
                         })
 
-                    }else{
+                    } else {
                         jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, response);
                         res.end(jsonString);
                     }
                 });
-            }else{
+            } else {
                 jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                 res.end(jsonString);
             }
@@ -828,8 +858,8 @@ function GetTwitterOauthToken(req, res) {
 
     // Step 1. Obtain request token for the authorization popup.
     request.post({url: requestTokenUrl, oauth: requestTokenOauth}, function (err, response, body) {
-        var jsonString ="";
-        if(err){
+        var jsonString = "";
+        if (err) {
             jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, response);
             res.end(jsonString);
         }
@@ -845,7 +875,6 @@ function GetTwitterOauthToken(req, res) {
 
     });
 }
-
 
 
 module.exports.GetProfile = GetProfile;
