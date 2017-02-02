@@ -104,6 +104,7 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
             try {
 
+
                 if (!_error && _response && _response.statusCode == 200) {
 
                     logger.debug("Successfully created a comment");

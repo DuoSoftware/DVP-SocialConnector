@@ -14,11 +14,13 @@ var validator = require('validator');
 var format = require("stringformat");
 var qs = require('querystring');
 var request = require("request");
+var async = require("async");
+
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-//var _twitterConsumerKey = "dUTFwOCHWXpvuLSsgQ7zvOPRK";
-//var _twitterConsumerSecret = "KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9";
+var _twitterConsumerKey = config.TWITTER_KEY;
+var _twitterConsumerSecret = config.TWITTER_SECRET;
 
 var oauth = require('oauth');
 var serverID = config.Host.ServerID;
@@ -690,7 +692,178 @@ function LoadTweets(req, res) {
                         //console.log(tweets);
                         jsonString = messageFormatter.FormatMessage(undefined, "Tweets found", true, undefined);
                         if (util.isArray(tweets) && tweets.length > 0) {
+
+                            var ticketList = [];
+                            var commentList = [];
+
+
+
+                            tweets.forEach(function (item){
+                                if (item.in_reply_to_status_id_str)
+                                {
+                                    commentList.push(item);
+                                }
+                                else{
+                                    ticketList.push(item);
+                                }
+                            });
+
+
+                            var TicketTask = [];
+                            ticketList.forEach(function (item) {
+                                TicketTask.push(function createContact(callback) {
+
+                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
+                                        if (isSuccess) {
+
+                                            CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
+                                                if (done) {
+
+
+                                                    logger.info("Twitter Ticket Added successfully " + item.id_str);
+
+
+                                                } else {
+
+                                                    logger.error("Add Request failed " + item.id);
+
+                                                }
+                                                callback(null,  item.id_str);
+                                            });
+
+                                        } else {
+                                            logger.error("Create engagement failed " + item.id);
+                                            callback(null,  item.id_str);
+                                        }
+                                    });
+                                });
+                            });
+
+                            var CommentTask = [];
+                            commentList.forEach(function (item) {
+                                CommentTask.push(function createContact(callback) {
+
+                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
+                                        if (isSuccess) {
+                                            CreateComment('twitter', 'tweets', company, tenant, item.in_reply_to_status_id_str, undefined, result, function (done) {
+                                                if (!done) {
+
+                                                    CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
+                                                        if (done) {
+                                                            logger.info("Twitter Ticket Added successfully " + item.id_str);
+
+                                                        } else {
+
+                                                            logger.error("Create Ticket failed " + item.id);
+
+                                                        }
+                                                        callback(null,  item.id_str);
+                                                    });
+                                                } else {
+
+                                                    logger.info("Twitter Comment Added successfully " + item.id_str);
+                                                    callback(null,  item.id_str);
+                                                }
+
+                                            })
+                                        } else {
+
+                                            logger.error("Create engagement failed " + item.id);
+                                            callback(null,  item.id_str);
+                                        }
+                                    })
+                                });
+                            });
+
+                            async.parallel(TicketTask, function (err, result) {
+                                async.parallel(CommentTask, function (err, result) {
+                                    console.log("done..................")
+                                });
+                            });
+
+                            /*function saveTicket() {
+                                ticketList.forEach(function (item) {
+
+                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
+                                        if (isSuccess) {
+
+                                            CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
+                                                if (done) {
+
+
+                                                    logger.info("Twitter Ticket Added successfully " + item.id_str);
+
+
+                                                } else {
+
+                                                    logger.error("Add Request failed " + item.id);
+
+                                                }
+                                            });
+
+                                        } else {
+                                            logger.error("Create engagement failed " + item.id);
+                                        }
+                                    })
+
+                                });
+                            }
+
+                            function saveComment() {
+                                commentList.forEach(function (item) {
+
+                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
+                                        if (isSuccess) {
+                                            CreateComment('twitter', 'tweets', company, tenant, item.in_reply_to_status_id_str, undefined, result, function (done) {
+                                                if (!done) {
+
+                                                    CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
+                                                        if (done) {
+                                                            logger.info("Twitter Ticket Added successfully " + item.id_str);
+
+                                                        } else {
+
+                                                            logger.error("Create Ticket failed " + item.id);
+
+                                                        }
+                                                    });
+                                                } else {
+
+                                                    logger.info("Twitter Comment Added successfully " + item.id_str);
+                                                }
+                                            })
+                                        } else {
+
+                                            logger.error("Create engagement failed " + item.id);
+
+                                        }
+                                    })
+
+                                });
+                            }*/
+
+
                             var since_id = tweets[0].id_str;
+                            twitter.tweet_since = since_id;
+                            Twitter.findOneAndUpdate({
+                                company: company,
+                                tenant: tenant,
+                                _id: req.params.id
+                            }, {$set: {tweet_since: since_id}}, function (err, doc) {
+                                if (err) {
+                                    logger.error("Update since id failed" + err);
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Update Since Id Failed", true, err);
+                                    res.end(jsonString);
+                                } else {
+                                    logger.debug("Update since id successfully");
+                                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter process done ", true, undefined);
+                                    res.end(jsonString);
+                                }
+                            });
+
+
+                            //-------------------
+                            /*var since_id = tweets[0].id_str;
                             twitter.tweet_since = since_id;
                             Twitter.findOneAndUpdate({
                                 company: company,
@@ -758,7 +931,7 @@ function LoadTweets(req, res) {
                                         })
                                     });
                                 }
-                            });
+                            });*/
                         } else {
                             jsonString = messageFormatter.FormatMessage(undefined, "No Twitter Found", false, undefined);
                             res.end(jsonString);
