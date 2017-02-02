@@ -48,18 +48,37 @@ function GetProfile(req, res) {
     //         };
     //     }}
     //     );
-    var client = new TwitterClient({
+
+
+    var accessTokenUrl = 'https://api.twitter.com/oauth/access_token';
+    var accessTokenOauth = {
         consumer_key: config.TWITTER_KEY,
         consumer_secret: config.TWITTER_SECRET,
-        access_token_key: req.body.oauth_token,
-        access_token_secret: req.body.oauth_verifier
+        token: req.body.oauth_token,
+        verifier: req.body.oauth_verifier
+    };
+
+    // Step 3. Exchange oauth token and oauth verifier for access token.
+    request.post({url: accessTokenUrl, oauth: accessTokenOauth}, function (err, response, accessToken) {
+
+        var accessToken = qs.parse(accessToken);
+
+        var client = new TwitterClient({
+            consumer_key: config.TWITTER_KEY,
+            consumer_secret: config.TWITTER_SECRET,
+            access_token_key: accessToken.oauth_token,
+            access_token_secret: accessToken.oauth_token_secret
+        });
+
+        client.get('account/verify_credentials', function (error, tweets, response) {
+            if (error) throw error;
+            console.log(tweets);  // The favorites.
+            console.log(response);  // Raw response object.
+        });
+
     });
 
-    client.get('direct_messages', function(error, tweets, response) {
-        if(error) throw error;
-        console.log(tweets);  // The favorites.
-        console.log(response);  // Raw response object.
-    });
+
 }
 
 function CreateTwitterAccount(req, res) {
