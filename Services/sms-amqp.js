@@ -42,10 +42,13 @@ queueConnection.on('ready', function () {
 
             /*message = JSON.parse(message.data.toString());*/
             console.log(message);
-            if (!message || !message.to || !message.from || !message.company || !message.tenant) {
+            if (!message || !message.to || !message.company || !message.tenant) {
                 console.log('SMS - Invalid message, skipping');
                 return ack.acknowledge();
             }
+            //!message.from ||
+            
+              message.from = "0710400400";
             ///////////////////////////create body/////////////////////////////////////////////////
 
 
