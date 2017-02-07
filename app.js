@@ -39,9 +39,9 @@ var server = restify.createServer({
 
 
 var https_options = {
-    ///ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
-     //key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-     //certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
+    //ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    //key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
+    //certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
 };
 
 var https_server = restify.createServer(https_options);
@@ -105,6 +105,20 @@ server.use(restify.bodyParser({mapParams: false}));
 server.use(restify.CORS());
 server.use(restify.fullResponse());
 server.use(jwt({secret: secret.Secret}));
+
+
+
+
+server.post('DVP/API/:version/Social/TwitterToken', authorization({
+    resource: "social",
+    action: "write"
+}), twitterService.GetTwitterOauthToken);
+
+
+server.post('DVP/API/:version/Social/Profile', authorization({
+    resource: "social",
+    action: "write"
+}), twitterService.GetProfile);
 
 server.post('DVP/API/:version/Social/Twitter', authorization({
     resource: "social",

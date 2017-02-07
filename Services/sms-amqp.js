@@ -37,15 +37,18 @@ queueConnection.on('ready', function () {
         q.bind('#');
         q.subscribe({
             ack: true,
-            prefetchCount: 10
+            prefetchCount: 5
         }, function (message, headers, deliveryInfo, ack) {
 
-            message = JSON.parse(message.data.toString());
-
-            if (!message || !message.to || !message.from || !message.company || !message.tenant) {
-                console.log('Invalid message, skipping');
+            /*message = JSON.parse(message.data.toString());*/
+            console.log(message);
+            if (!message || !message.to || !message.company || !message.tenant) {
+                console.log('SMS - Invalid message, skipping');
                 return ack.acknowledge();
             }
+            //!message.from ||
+            
+              message.from = "0710400400";
             ///////////////////////////create body/////////////////////////////////////////////////
 
 
@@ -150,7 +153,7 @@ function SendSMPP(company, tenant, mailoptions, cb){
 
                 } else {
 
-                    logger.error("Send SMS Failed "+_error);
+                    logger.error("Send SMS Failed ");
                     return cb(false);
 
                 }

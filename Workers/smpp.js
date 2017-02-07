@@ -3,6 +3,7 @@
  */
 var config = require('config');
 var smpp = require('smpp');
+var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 
 var smpphost = config.SMPPClient.ip;
 var smppport = config.SMPPClient.port;
@@ -50,7 +51,7 @@ session.on('close', function(){
 session.on('error', function(error){
     console.log('smpp error', error)
     didConnect = true;
-    process.exit(1);
+    //process.exit(1);
 });
 
 
@@ -70,8 +71,10 @@ function connectSMPP() {
 var sendSMPP = function(from, to, text, cb) {
 
 
+
     from = from.toString();
     to   = to.toString();
+    
 
     session.submit_sm({
         source_addr:      from,

@@ -39,8 +39,9 @@ queueConnection.on('ready', function () {
 
             //message = JSON.parse(message.data.toString());
 
+            console.log(message);
             if (!message || !message.to || !message.from ||  !message.body || !message.company || !message.tenant) {
-                console.log('Invalid message, skipping');
+                console.log('Twitter - Invalid message, skipping');
                 return ack.acknowledge();
             }
             ///////////////////////////create body/////////////////////////////////////////////////
@@ -54,7 +55,8 @@ queueConnection.on('ready', function () {
 var mainServer = format("http://{0}", config.LBServer.ip);
 
 if(validator.isIP(config.LBServer.ip))
-    mainServer = format("http://{0}:{1}", config.LBServer.ip, config.LBServer.port);
+    mainServer = format("http://{" +
+        "0}:{1}", config.LBServer.ip, config.LBServer.port);
 
 function SendRequest(company, tenant, twitteroptions, cb){
 

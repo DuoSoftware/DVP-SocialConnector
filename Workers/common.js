@@ -104,6 +104,7 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
             try {
 
+
                 if (!_error && _response && _response.statusCode == 200) {
 
                     logger.debug("Successfully created a comment");
@@ -307,7 +308,7 @@ function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
             Reference: id,
             Description: "Direct message twitter",
-            CronePattern: format( "* */{0} * * * *",time),
+            CronePattern: format( "*/{0} * * * *",time),
             CallbackURL: mainServer,
             CallbackData: ""
 
