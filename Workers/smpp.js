@@ -74,6 +74,8 @@ var sendSMPP = function(from, to, text, cb) {
 
     from = from.toString();
     to   = to.toString();
+    
+    from = "0710400400";
 
     session.submit_sm({
         source_addr:      from,
