@@ -37,7 +37,7 @@ queueConnection.on('ready', function () {
         q.bind('#');
         q.subscribe({
             ack: true,
-            prefetchCount: 10
+            prefetchCount: 5
         }, function (message, headers, deliveryInfo, ack) {
 
             /*message = JSON.parse(message.data.toString());*/
@@ -150,7 +150,7 @@ function SendSMPP(company, tenant, mailoptions, cb){
 
                 } else {
 
-                    logger.error("Send SMS Failed "+_error);
+                    logger.error("Send SMS Failed ");
                     return cb(false);
 
                 }
