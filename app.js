@@ -136,7 +136,9 @@ server.post('DVP/API/:version/Social/Twitter/:id/Cron/Start', authorization({
 server.post('DVP/API/:version/Social/Twitter/:id/directmessages', authorization({
     resource: "social",
     action: "read"
-}), twitterService.LoadTwitterMessages);
+}), twitterService.LoadTweets);
+
+//LoadTwitterMessages
 
 server.get('DVP/API/:version/Social/Twitter/:id/streammessages', authorization({
     resource: "social",
