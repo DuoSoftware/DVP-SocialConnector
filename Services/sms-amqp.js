@@ -41,9 +41,9 @@ queueConnection.on('ready', function () {
         }, function (message, headers, deliveryInfo, ack) {
 
             /*message = JSON.parse(message.data.toString());*/
-            console.log(message);
+            logger.info(message);
             if (!message || !message.to || !message.company || !message.tenant) {
-                console.log('SMS - Invalid message, skipping');
+                logger.error('SMS - Invalid message, skipping');
                 return ack.acknowledge();
             }
             //!message.from ||
@@ -72,9 +72,6 @@ function SendSMPP(company, tenant, mailoptions, cb){
                 if (_isDone) {
 
                     logger.debug("Successfully send sms");
-
-
-
 
                         CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text,undefined, function (done, result) {
                             if (done) {
