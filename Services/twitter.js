@@ -9,6 +9,7 @@ var CreateComment = require('../Workers/common').CreateComment;
 var CreateEngagement = require('../Workers/common').CreateEngagement;
 var CreateTicket = require('../Workers/common').CreateTicket;
 var RegisterCronJob = require('../Workers/common').RegisterCronJob;
+var StartStopCronJob = require('../Workers/common').StartStopCronJob;
 var util = require('util');
 var validator = require('validator');
 var format = require("stringformat");
@@ -181,8 +182,8 @@ function TwitterStartCron(req, res) {
     if (validator.isIP(config.LBServer.ip))
         mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, id);
 
-    RegisterCronJob(company, tenant, 10, id, mainServer, function (isSuccess) {
-
+    StartStopCronJob(company, tenant, req.params.id,'stop', function (isSuccess) {
+        logger.info('DeleteTwitterAccount. stop cron' + isSuccess);
         if (isSuccess) {
             jsonString = messageFormatter.FormatMessage(undefined, "Cron saved successfully", true, undefined);
             Twitter.findOneAndUpdate({_id: req.params.id}, {cron: {enable: true}}, function (err, tww) {
@@ -198,10 +199,31 @@ function TwitterStartCron(req, res) {
             res.end(jsonString);
         }
         else {
-            jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, undefined);
-            res.end(jsonString);
+            RegisterCronJob(company, tenant, 10, id, mainServer, function (isSuccess) {
+
+                if (isSuccess) {
+                    jsonString = messageFormatter.FormatMessage(undefined, "Cron saved successfully", true, undefined);
+                    Twitter.findOneAndUpdate({_id: req.params.id}, {cron: {enable: true}}, function (err, tww) {
+                        if (err) {
+
+                            logger.error('Update twitter cron status failed', err);
+
+                        } else {
+
+                            logger.info('Update twitter cron status success');
+                        }
+                    });
+                    res.end(jsonString);
+                }
+                else {
+                    jsonString = messageFormatter.FormatMessage(undefined, "Cron save failed", false, undefined);
+                    res.end(jsonString);
+                }
+            });
         }
     });
+
+
 
 }
 
@@ -215,14 +237,21 @@ function DeleteTwitterAccount(req, res) {
     var jsonString;
     var twitter = Twitter({
         status: false,
-        updated_at: Date.now()
+        updated_at: Date.now(),
+        cron: {enable: false}
     });
+
 
     Twitter.findOneAndUpdate({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Delete Twitter account failed", false, undefined);
         } else {
             jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, twitter);
+
+            //company, tenant, id,action,cb
+            StartStopCronJob(company, tenant, req.params.id,'stop', function (isSuccess) {
+                logger.info('DeleteTwitterAccount. stop cron' + isSuccess);
+            });
         }
         res.end(jsonString);
     });
@@ -238,7 +267,8 @@ function ActivateTwitterAccount(req, res) {
     var jsonString;
     var twitter = Twitter({
         status: true,
-        updated_at: Date.now()
+        updated_at: Date.now(),
+        cron: {enable: false}
     });
 
     Twitter.findOneAndUpdate({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
