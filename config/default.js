@@ -1,4 +1,11 @@
 module.exports = {
+
+
+  TWITTER_KEY: 'dUTFwOCHWXpvuLSsgQ7zvOPRK',
+  TWITTER_SECRET: 'KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9',
+  TWITTER_CALLBACK_URL:  'http://localhost:63342/',
+
+
   "DB": {
     "Type":"postgres",
     "User":"duo",
@@ -122,7 +129,7 @@ module.exports = {
     //
 
 
-    "cronurl": "192.168.0.27",
+    "cronurl": "scheduleworker.app.veery.cloud",
     "cronport": '8080',
     "cronversion":"1.0.0.0",
 
