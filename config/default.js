@@ -89,7 +89,7 @@ module.exports = {
 
   "LBServer" : {
 
-    "ip": "192.168.0.123",
+    "ip": "104.236.197.119",
     "port": "4647"
 
   },
@@ -134,7 +134,7 @@ module.exports = {
     "cronversion":"1.0.0.0",
 
 
-    "ticketServiceHost": "127.0.0.1", //liteticket.app.veery.cloud
+    "ticketServiceHost": "liteticket.app.veery.cloud", //liteticket.app.veery.cloud
     "ticketServicePort": "3636",
     "ticketServiceVersion": "1.0.0.0",
 
