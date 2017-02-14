@@ -74,7 +74,11 @@ var sendSMPP = function(from, to, text, cb) {
 
     from = from.toString();
     to   = to.toString();
-    
+
+
+    console.log("from :" +from);
+    console.log("to :"+to);
+    console.log("text :"+text);
 
     session.submit_sm({
         source_addr:      from,
