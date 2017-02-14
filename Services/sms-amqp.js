@@ -386,7 +386,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                     SendSMPP(company, tenant, mailOptions, function (done) {
 
                                         if (!done)
-                                            ack.reject(true);
+                                            //ack.reject(true);
+                                            ack.acknowledge();
                                         else
                                             ack.acknowledge();
 
@@ -396,7 +397,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                     SendRequest(company, tenant, mailOptions, function (done) {
 
                                         if (!done)
-                                            ack.reject(true);
+                                            //ack.reject(true);
+                                            ack.acknowledge();
                                         else
                                             ack.acknowledge();
 
@@ -409,14 +411,17 @@ function SendSMS(message, deliveryInfo, ack) {
                 }else{
 
                     logger.error("No template found");
-                    ack.reject(true);
+                    //ack.reject(true);
+                    ack.acknowledge();
+
                 }
 
             }else{
 
 
                 logger.error("Pick template failed ",errPickTemplate);
-                ack.reject(true);
+                //ack.reject(true);
+                ack.acknowledge();
 
             }
 
@@ -428,7 +433,8 @@ function SendSMS(message, deliveryInfo, ack) {
             SendSMPP(company, tenant, mailOptions, function (done) {
 
                 if (!done)
-                    ack.reject(true);
+                    //ack.reject(true);
+                    ack.acknowledge();
                 else
                     ack.acknowledge();
 
@@ -438,7 +444,8 @@ function SendSMS(message, deliveryInfo, ack) {
             SendRequest(company, tenant, mailOptions, function (done) {
 
                 if (!done)
-                    ack.reject(true);
+                    //ack.reject(true);
+                    ack.acknowledge();
                 else
                     ack.acknowledge();
 
