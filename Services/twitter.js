@@ -93,6 +93,7 @@ function GetProfile(req, res) {
 
             req.body.id = tweets.id;
             req.body.name = tweets.name;
+            req.body.screen_name = tweets.screen_name;
             req.body.access_token_key = accessToken.oauth_token;
             req.body.access_token_secret = accessToken.oauth_token_secret;
             req.body.ticket_type = 'question';
@@ -120,7 +121,7 @@ function CreateTwitterAccount(req, res) {
         company: company,
         tenant: tenant,
         name: req.body.name,
-        screen_name: req.body.name,
+        screen_name: req.body.screen_name,
         access_token_key: req.body.access_token_key,
         access_token_secret: req.body.access_token_secret,
         ticket_type: req.body.ticket_type,
