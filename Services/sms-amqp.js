@@ -358,7 +358,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                             SendSMPP(company, tenant, mailOptions, function (done) {
 
                                                 if (!done)
-                                                    ack.reject(true);
+                                                    ack.acknowledge();
+                                                        //.reject(true);
                                                 else
                                                     ack.acknowledge();
 
@@ -367,7 +368,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                             SendRequest(company, tenant, mailOptions, function (done) {
 
                                                 if (!done)
-                                                    ack.reject(true);
+                                                    //ack.reject(true);
+                                                    ack.acknowledge();
                                                 else
                                                     ack.acknowledge();
 
