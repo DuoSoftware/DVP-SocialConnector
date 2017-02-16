@@ -981,7 +981,6 @@ var processFacebookWallData = function (fbData) {
             if (!item.error) {
                 if (item.data) {
                     item.data.forEach(function (wallpost) {
-                        console.log(wallpost);
                         createTicketTasks.push(function (callback) {
                             CreateEngagement("facebook-post", item.fbConnector.company, item.fbConnector.tenant, wallpost.from.id, JSON.stringify(wallpost.to), "inbound", wallpost.id, wallpost.message, function (isSuccess, engagement) {
 
