@@ -197,7 +197,7 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             body: data,
             user: user,
             channel_id: channel_id,
-            contact: contact
+            raw: contact
         };
 
         logger.debug("Calling Engagement service URL %s", engagementURL);
