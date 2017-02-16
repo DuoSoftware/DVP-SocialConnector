@@ -844,7 +844,7 @@ var RealTimeComments = function (id, fbData) {
                 user.id = fbData.sender_id;
                 user.channel = 'facebook';
 
-                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message,user,fdData.sender_id,undefined, function (isSuccess, engagement) {
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message,user,fbData.sender_id,undefined, function (isSuccess, engagement) {
                     if (isSuccess) {
                         CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
                             if (!done) {
