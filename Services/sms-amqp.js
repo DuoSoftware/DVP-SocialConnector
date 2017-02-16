@@ -73,7 +73,7 @@ function SendSMPP(company, tenant, mailoptions, cb){
 
 
 
-                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text,undefined, function (done, result) {
+                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text,undefined, undefined,undefined,function (done, result) {
                             if (done) {
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){
@@ -190,7 +190,7 @@ function SendRequest(company, tenant, mailoptions, cb){
 
                         var sessionid=   arr[1].replace(/['"]+/g, '');
 
-                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text,undefined, function (done, result) {
+                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text,undefined,undefined,undefined, function (done, result) {
                             if (done) {
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){

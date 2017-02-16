@@ -258,7 +258,7 @@ function StreamTwitterMessages(req, res) {
 
 
 
-                                        CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, user, function (isSuccess, result) {
+                                        CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, user,item.user.id_str,item.user, function (isSuccess, result) {
                                             if (isSuccess) {
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
                                                 if (item.in_reply_to_status_id_str) {
@@ -505,7 +505,7 @@ function LoadTwitterMessages(req, res) {
                                     tweets.forEach(function (item) {
 
 
-                                        CreateEngagement("twitter", company, tenant, item.sender_screen_name, item.recipient_screen_name, "inbound", item.id_str, item.text,undefined, function (isSuccess, result) {
+                                        CreateEngagement("twitter", company, tenant, item.sender_screen_name, item.recipient_screen_name, "inbound", item.id_str, item.text,undefined,item.user.id_str,item.user, function (isSuccess, result) {
 
                                             if (isSuccess) {
 
@@ -625,7 +625,7 @@ function LoadTweets(req, res) {
                                     res.end(jsonString);
                                     //////////////////////////////////////////////////////////////////////////////////////////////////////
                                     tweets.forEach(function (item) {
-                                        CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
+                                        CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined,item.user.id_str,item.user, function (isSuccess, result) {
                                             if (isSuccess) {
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
@@ -724,7 +724,7 @@ function ReplyTweet(req, res){
                         //console.log(tweets);
 
 
-                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, req.body.message,undefined, function (isSuccess, result) {
+                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, req.body.message,undefined,tweets.user.id_str,tweets.user, function (isSuccess, result) {
 
                             if (isSuccess) {
                                 CreateComment('twitter','out_tweets',company, tenant,req.params.tid, undefined,result, function (done) {

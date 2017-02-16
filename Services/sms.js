@@ -37,7 +37,7 @@ function SendRequest(company, tenant, mailoptions, cb){
                     if(arr && arr.length > 1 && arr[0]=='Success') {
                      var sessionid=   arr[1].replace(/['"]+/g, '');
 
-                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text, function (done) {
+                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text,undefined,undefined,undefined, function (done) {
                             if (done) {
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){
