@@ -803,7 +803,10 @@ module.exports.RealTimeUpdates = function (fbData) {
         console.log(items);
 
         items.changes.forEach(function (change) {
-
+            if (change.value.sender_id === config.SocialConnector.fb_client_id){
+                console.log("Comment By Owner....................................");
+                return;
+            }
             if (change.field == "feed") {
                 if (change.value.item == "status" || change.value.item == "post") {
                     // create ticket
