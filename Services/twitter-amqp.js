@@ -86,7 +86,7 @@ function SendRequest(company, tenant, twitteroptions, cb){
                     if (!error) {
                         //console.log(tweets);
 
-                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, twitteroptions.text,undefined, undefined,undefined,function (isSuccess, result) {
+                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, twitteroptions.text,undefined, tweets.user.id_str,tweets.user,function (isSuccess, result) {
 
                             if (isSuccess) {
 

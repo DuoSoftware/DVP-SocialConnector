@@ -74,8 +74,6 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
             url = format("http://{0}:{1}/DVP/API/{2}/TicketByEngagement/{3}/Comment", config.Services.ticketServiceHost, config.Services.ticketServicePort,config.Services.ticketServiceVersion, engid);
 
 
-
-
         var data = {
 
             body: engagement.body,

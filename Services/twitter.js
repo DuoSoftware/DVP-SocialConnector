@@ -366,6 +366,7 @@ function StreamTwitterMessages(req, res) {
                                         user.id = item.user.id_str;
 
 
+                                        //channel, company, tenant, from, to, direction, session, data, user,channel_id,contact,  cb
                                         CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, user,item.user.id_str,item.user, function (isSuccess, result) {
                                             if (isSuccess) {
                                                 //////////////////////////////////////fresh one we add to ards//////////////////////////////////////
@@ -620,6 +621,7 @@ function LoadTwitterMessages(req, res) {
                                     tweets.forEach(function (item) {
 
 
+                                        //channel, company, tenant, from, to, direction, session, data, user,channel_id,contact,  cb
                                         CreateEngagement("twitter", company, tenant, item.sender_screen_name, item.recipient_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
 
                                             if (isSuccess) {
@@ -744,7 +746,8 @@ function LoadTweets(req, res) {
                             ticketList.forEach(function (item) {
                                 TicketTask.push(function createContact(callback) {
 
-                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
+                                    //channel, company, tenant, from, to, direction, session, data, user,channel_id,contact,  cb
+                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined,item.user.id_str,item.user, function (isSuccess, result) {
                                         if (isSuccess) {
 
                                             CreateTicket("twitter", item.id_str, result.profile_id, company, tenant, ticket_type, item.text, item.text, ticket_priority, ticket_tags, function (done) {
@@ -774,7 +777,7 @@ function LoadTweets(req, res) {
                             commentList.forEach(function (item) {
                                 CommentTask.push(function createContact(callback) {
 
-                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined, function (isSuccess, result) {
+                                    CreateEngagement("twitter", company, tenant, item.user.screen_name, item.in_reply_to_screen_name, "inbound", item.id_str, item.text, undefined,item.user.id_str,item.user, function (isSuccess, result) {
                                         if (isSuccess) {
                                             CreateComment('twitter', 'tweets', company, tenant, item.in_reply_to_status_id_str, undefined, result, function (done) {
                                                 if (!done) {
@@ -1013,7 +1016,7 @@ function ReplyTweet(req, res) {
                         //console.log(tweets);
 
 
-                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, req.body.message, undefined, function (isSuccess, result) {
+                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, req.body.message, undefined,undefined,undefined, function (isSuccess, result) {
 
                             if (isSuccess) {
                                 CreateComment('twitter', 'out_tweets', company, tenant, req.params.tid, undefined, result, function (done) {
