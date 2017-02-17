@@ -149,8 +149,8 @@ module.exports = {
 
   "SocialConnector":
   {
-    "fb_client_id":"1643344935974822",
-    "fb_client_secret":"e85be3926e2189424f8c8c68986c275e",
+    "fb_client_id":"825442624259571",
+    "fb_client_secret":"85eab7232db0c38abd7d04baa358382f",
     "owner_id":"124278164680278"
   }
 
