@@ -87,7 +87,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     newUser.fb.access_token = JSON.parse(body).access_token; // we will save the token that facebook provides to the user
                     newUser.fb.firstName = profile.fb.firstName;
                     newUser.fb.lastName = profile.fb.lastName; // look at the passport user profile to see how names are returned
-                    newUser.fb.email = profile.fb.email; // facebook can return multiple emails so we'll take the first
+                    newUser.fb.email = profile.fb.email?profile.fb.email:"noemail@facetone.com"; // facebook can return multiple emails so we'll take the first
                     newUser.fb.clientID = config.SocialConnector.fb_client_id;
                     newUser.fb.clientSecret = config.SocialConnector.fb_client_secret;
                     newUser.company = company;
@@ -96,6 +96,8 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     newUser.fb.pageID = profile.fb.pageID;
                     newUser.fb.pagePicture = profile.fb.pagePicture;
                     newUser.fb.ticketToPost = true;
+                    newUser.fb.profileID = profile.profileID;
+                    newUser.fb.profileName= profile.profileName;
                     // save our user to the database
                     newUser.save(function (err, obj) {
                         if (err) {
@@ -803,7 +805,10 @@ module.exports.RealTimeUpdates = function (fbData) {
         console.log(items);
 
         items.changes.forEach(function (change) {
-
+            if (change.value.sender_id.toString() === config.SocialConnector.fb_client_id){
+                console.log("Comment By Owner....................................");
+                return;
+            }
             if (change.field == "feed") {
                 if (change.value.item == "status" || change.value.item == "post") {
                     // create ticket
@@ -844,7 +849,7 @@ var RealTimeComments = function (id, fbData) {
                 user.id = fbData.sender_id;
                 user.channel = 'facebook';
 
-                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.comment_id, fbData.message,user, function (isSuccess, engagement) {
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message,user,fbData.sender_id,to, function (isSuccess, engagement) {
                     if (isSuccess) {
                         CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
                             if (!done) {
@@ -900,7 +905,7 @@ var RealTimeCreateTicket = function (id, fbData) {
                 user.id = fbData.sender_id;
                 user.channel = 'facebook';
 
-                CreateEngagement("facebook-post", company, tenant, fbData.sender_id, JSON.stringify(to), "inbound", fbData.post_id, fbData.message, user, function (isSuccess, engagement) {
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.post_id, fbData.message, user,fbData.sender_id,to, function (isSuccess, engagement) {
 
                     if (isSuccess) {
 
@@ -982,7 +987,7 @@ var processFacebookWallData = function (fbData) {
                 if (item.data) {
                     item.data.forEach(function (wallpost) {
                         createTicketTasks.push(function (callback) {
-                            CreateEngagement("facebook-post", item.fbConnector.company, item.fbConnector.tenant, wallpost.from.id, JSON.stringify(wallpost.to), "inbound", wallpost.id, wallpost.message, function (isSuccess, engagement) {
+                            CreateEngagement("facebook-post", item.fbConnector.company, item.fbConnector.tenant, wallpost.from.id, JSON.stringify(wallpost.to), "inbound", wallpost.id, wallpost.message, undefined,undefined, function (isSuccess, engagement) {
 
                                 if (isSuccess) {
 
@@ -1071,7 +1076,7 @@ var generateLongLivedToken = function (token, callBack) {
             if (error) {
                 jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
                 logger.error("Fail to get  Long Lived Token : " + jsonString);
-                callBack(err, undefined);
+                callBack(error, undefined);
             }
             else {
 

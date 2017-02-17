@@ -46,7 +46,7 @@ queueConnection.on('ready', function () {
 function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
 
 
-    SocialConnector.findOne({'_id': JSON.parse(connectorId).id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': connectorId, company: company, tenant: tenant}, function (err, user) {
 
         if (err) {
             logger.error("Fail To Find Social Connector.",err);
