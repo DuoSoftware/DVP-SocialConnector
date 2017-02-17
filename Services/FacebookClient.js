@@ -87,7 +87,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     newUser.fb.access_token = JSON.parse(body).access_token; // we will save the token that facebook provides to the user
                     newUser.fb.firstName = profile.fb.firstName;
                     newUser.fb.lastName = profile.fb.lastName; // look at the passport user profile to see how names are returned
-                    newUser.fb.email = profile.fb.email; // facebook can return multiple emails so we'll take the first
+                    newUser.fb.email = profile.fb.email?profile.fb.email:"noemail@facetone.com"; // facebook can return multiple emails so we'll take the first
                     newUser.fb.clientID = config.SocialConnector.fb_client_id;
                     newUser.fb.clientSecret = config.SocialConnector.fb_client_secret;
                     newUser.company = company;
@@ -96,6 +96,8 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     newUser.fb.pageID = profile.fb.pageID;
                     newUser.fb.pagePicture = profile.fb.pagePicture;
                     newUser.fb.ticketToPost = true;
+                    newUser.fb.profileID = profile.profileID;
+                    newUser.fb.profileName= profile.profileName;
                     // save our user to the database
                     newUser.save(function (err, obj) {
                         if (err) {
@@ -1074,7 +1076,7 @@ var generateLongLivedToken = function (token, callBack) {
             if (error) {
                 jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
                 logger.error("Fail to get  Long Lived Token : " + jsonString);
-                callBack(err, undefined);
+                callBack(error, undefined);
             }
             else {
 

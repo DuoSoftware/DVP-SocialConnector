@@ -142,15 +142,15 @@ module.exports = {
     "ardsServicePort": "8831",
     "ardsServiceVersion": "1.0.0.0",
 
-    "facebookUrl" : "https://graph.facebook.com/v2.7/"
+    "facebookUrl" : "https://graph.facebook.com/v2.8/"
 
 
   },
 
   "SocialConnector":
   {
-    "fb_client_id":"825442624259571",
-    "fb_client_secret":"85eab7232db0c38abd7d04baa358382f",
+    "fb_client_id":"1643344935974822",
+    "fb_client_secret":"e85be3926e2189424f8c8c68986c275e",
     "owner_id":"124278164680278"
   }
 
