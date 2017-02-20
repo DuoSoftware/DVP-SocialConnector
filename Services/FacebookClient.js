@@ -854,15 +854,19 @@ var RealTimeComments = function (id, fbData) {
                 user.id = fbData.sender_id;
                 user.channel = 'facebook';
 
+                console.log("CreateEngagement");
                 CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message, user, fbData.sender_id, to, function (isSuccess, engagement) {
+                    console.log("CreateEngagement ......" +isSuccess);
                     if (isSuccess) {
                         CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
+                            console.log("CreateEngagement ...... 123" );
                             if (!done) {
                                 logger.error("Fail To Add Comments" + fbData.post_id);
                             } else {
 
                                 logger.info("Facebook Comment Added successfully " + fbData.post_id);
                             }
+
                         })
 
                     } else {
