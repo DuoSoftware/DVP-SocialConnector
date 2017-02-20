@@ -807,7 +807,6 @@ module.exports.RealTimeUpdates = function (fbData) {
         var ownerIds = config.SocialConnector.owner_id.split(",");
 
         items.changes.forEach(function (change) {
-            if (a.indexOf(7) === -1)
             /*if (change.value.sender_id.toString() === config.SocialConnector.owner_id){*/
                 if (ownerIds.indexOf(change.value.sender_id.toString()) === -1) {
                     if (change.field == "feed") {
