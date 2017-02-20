@@ -804,14 +804,16 @@ module.exports.RealTimeUpdates = function (fbData) {
 
         console.log(items);
 
-        var ownerIds = config.SocialConnector.split(",");
-
+        var ownerIds = config.SocialConnector.owner_id.split(",");
+        console.log("Comment 1");
         items.changes.forEach(function (change) {
+            console.log("Comment 2");
             /*if (change.value.sender_id.toString() === config.SocialConnector.owner_id){*/
             if (ownerIds.indexOf(change.value.sender_id.toString()) > 0){
                 console.log("Comment By Owner....................................");
                 return;
             }
+            console.log("Comment 3");
             if (change.field == "feed") {
                 if (change.value.item == "status" || change.value.item == "post") {
                     // create ticket
