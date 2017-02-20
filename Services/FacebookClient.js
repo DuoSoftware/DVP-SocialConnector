@@ -804,8 +804,11 @@ module.exports.RealTimeUpdates = function (fbData) {
 
         console.log(items);
 
+        var ownerIds = config.SocialConnector.split(",");
+
         items.changes.forEach(function (change) {
-            if (change.value.sender_id.toString() === config.SocialConnector.owner_id){
+            /*if (change.value.sender_id.toString() === config.SocialConnector.owner_id){*/
+            if (ownerIds.indexOf(change.value.sender_id.toString()>0)){
                 console.log("Comment By Owner....................................");
                 return;
             }
