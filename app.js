@@ -85,7 +85,7 @@ var setup_server = function (server) {
         res.send(200);
     });
 
-    server.post('/webhook', function (req, res) {
+   /* server.post('/webhook', function (req, res) {
         var data = req.body;
 
         // Make sure this is a page subscription
@@ -118,7 +118,7 @@ var setup_server = function (server) {
     function receivedMessage(event) {
         // Putting a stub for now, we'll expand it in the following steps
         console.log("Message data: ", event.message);
-    }
+    }*/
 
     server.post('/instagram', function(req, res) {
         console.log('Instagram request body:');
