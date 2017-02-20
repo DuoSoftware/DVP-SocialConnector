@@ -5,6 +5,7 @@ var format = require("stringformat");
 var CreateEngagement = require('../Workers/common').CreateEngagement;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateTicket = require('../Workers/common').CreateTicket;
+var UpdateComment = require('../Workers/common').UpdateComment;
 var config = require('config');
 var validator = require('validator');
 var dust = require('dustjs-linkedin');
@@ -38,12 +39,12 @@ queueConnection.on('ready', function () {
             }
             ///////////////////////////create body/////////////////////////////////////////////////
 
-            MakeCommentsToWallPost(message.tenant,message.company,message.from,message.reply_session,message.body,ack)
+            MakeCommentsToWallPost(message.tenant,message.company,message.from,message.reply_session,message.body,message,ack)
         });
     });
 });
 
-function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
+function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack) {
 
 
     SocialConnector.findOne({'_id': connectorId, company: company, tenant: tenant}, function (err, user) {
@@ -73,6 +74,43 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
                     ack.acknowledge();
                 }
                 else {
+
+                    /*CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message, user, fbData.sender_id, to, function (isSuccess, engagement) {*/
+                    CreateEngagement("facebook-post", company, tenant, data.author, data.to, "outbound", JSON.parse(body).id, data.body, user, data.from, data.to, function (isSuccess, engagement) {
+                        if (isSuccess) {
+                            /*CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
+                                if (!done) {
+                                    logger.error("Fail To Add Comments" + fbData.post_id);
+                                } else {
+
+                                    logger.info("Facebook Comment Added successfully " + fbData.post_id);
+                                }
+                            })*/
+
+                            UpdateComment(tenant, company, data.body,JSON.parse(body).id, function (done) {
+                                if (done) {
+                                    logger.info("Update Comment Completed ");
+
+                                } else {
+
+                                    logger.error("Update Comment Failed ");
+
+                                }
+                            });
+
+
+                        } else {
+
+                            logger.error("Create engagement failed " + fbData.post_id);
+
+                        }
+                    })
+
+
+
+
+
+
 
                     if (response.statusCode == 200) {
                         ack.acknowledge();
