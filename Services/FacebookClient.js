@@ -810,6 +810,7 @@ module.exports.RealTimeUpdates = function (fbData) {
             console.log("Comment 2");
             console.log(ownerIds.indexOf(change.value.sender_id.toString()));
             console.log(ownerIds.indexOf(change.value.sender_id));
+            console.log(ownerIds.indexOf(JSON.parse(ownerIds)));
             /*if (change.value.sender_id.toString() === config.SocialConnector.owner_id){*/
             if (ownerIds.indexOf(change.value.sender_id.toString()) > 0){
                 console.log("Comment By Owner....................................");
