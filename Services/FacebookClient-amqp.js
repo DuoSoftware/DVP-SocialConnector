@@ -82,7 +82,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
                         ack.acknowledge();
                     }
 
-                    console.log(JSON.stringify(body));
+                    console.log("MakeCommentsToWallPost..... > "+ JSON.stringify(body));
                 }
             });
         }
