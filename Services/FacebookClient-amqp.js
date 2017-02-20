@@ -81,6 +81,8 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,ack) {
                         logger.error("Fail To Make Comment.",new Error("Fail To Make Comment"));
                         ack.acknowledge();
                     }
+
+                    console.log(JSON.stringify(body));
                 }
             });
         }
