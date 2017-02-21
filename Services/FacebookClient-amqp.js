@@ -88,7 +88,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                                  }
                                  })*/
 
-                                UpdateComment(tenant, company, data.reply_session,engagement._id, function (done) {
+                                UpdateComment(tenant, company, data.comment,engagement._id, function (done) {
                                     if (done) {
                                         logger.info("Update Comment Completed ");
 
