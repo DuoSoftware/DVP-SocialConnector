@@ -101,7 +101,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
 
                         } else {
 
-                            logger.error("Create engagement failed " + fbData.post_id);
+                            logger.error("Create engagement failed " + JSON.parse(body).id);
 
                         }
                     })
