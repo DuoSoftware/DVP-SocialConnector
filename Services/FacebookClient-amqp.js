@@ -46,7 +46,7 @@ queueConnection.on('ready', function () {
 
 function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack) {
 
-    console.log("MakeCommentsToWallPost. >  " + JSON.stringify(data));
+    console.log("MakeCommentsToWallPost. RMQ Data >  " + JSON.stringify(data));
     SocialConnector.findOne({'_id': connectorId, company: company, tenant: tenant}, function (err, user) {
 
         if (err) {
