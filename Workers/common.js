@@ -102,7 +102,7 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
             try {
 
-
+                console.log("CreateComment ----------- >   " +JSON.stringify(_response));
                 if (!_error && _response && _response.statusCode == 200) {
 
                     logger.debug("Successfully created a comment");
@@ -210,7 +210,7 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
         }, function (_error, _response, datax) {
 
             try {
-
+                console.log("CreateEngagement ----------- >   " +JSON.stringify(_response));
                 if (!_error && _response && _response.statusCode == 200&& _response.body && _response.body.IsSuccess) {
 
                     return cb(true,_response.body.Result);
