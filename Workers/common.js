@@ -140,7 +140,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
         };
 
 
-        Console.log("UpdateComment . cid : " + cid +" eid : "+eid+" url"+url);
+        console.log("UpdateComment . cid : " + cid +" eid : "+eid+" url"+url);
         request({
             method: "PUT",
             url: url,
