@@ -74,45 +74,39 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                     ack.acknowledge();
                 }
                 else {
-
-                    /*CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message, user, fbData.sender_id, to, function (isSuccess, engagement) {*/
-                    CreateEngagement("facebook-post", company, tenant, data.author, data.to, "outbound", JSON.parse(body).id, data.body, user, data.from, data.to, function (isSuccess, engagement) {
-                        if (isSuccess) {
-                            /*CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
-                                if (!done) {
-                                    logger.error("Fail To Add Comments" + fbData.post_id);
-                                } else {
-
-                                    logger.info("Facebook Comment Added successfully " + fbData.post_id);
-                                }
-                            })*/
-
-                            UpdateComment(tenant, company, data.reply_session,engagement._id, function (done) {
-                                if (done) {
-                                    logger.info("Update Comment Completed ");
-
-                                } else {
-
-                                    logger.error("Update Comment Failed ");
-
-                                }
-                            });
-
-
-                        } else {
-
-                            logger.error("Create engagement failed " + JSON.parse(body).id);
-
-                        }
-                    })
-
-
-
-
-
-
-
                     if (response.statusCode == 200) {
+
+                        /*CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message, user, fbData.sender_id, to, function (isSuccess, engagement) {*/
+                        CreateEngagement("facebook-post", company, tenant, data.author, data.to, "outbound", JSON.parse(body).id, data.body, undefined, data.from, data.to, function (isSuccess, engagement) {
+                            if (isSuccess) {
+                                /*CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
+                                 if (!done) {
+                                 logger.error("Fail To Add Comments" + fbData.post_id);
+                                 } else {
+
+                                 logger.info("Facebook Comment Added successfully " + fbData.post_id);
+                                 }
+                                 })*/
+
+                                UpdateComment(tenant, company, data.reply_session,engagement._id, function (done) {
+                                    if (done) {
+                                        logger.info("Update Comment Completed ");
+
+                                    } else {
+
+                                        logger.error("Update Comment Failed ");
+
+                                    }
+                                });
+
+
+                            } else {
+
+                                logger.error("Create engagement failed " + JSON.parse(body).id);
+
+                            }
+                        });
+
                         ack.acknowledge();
                     }
                     else {
