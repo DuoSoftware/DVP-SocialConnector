@@ -125,7 +125,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
             });
         }
         else {
-            logger.error("Fail To Find Connector.",new Error("Fail To Find Connector"));
+            logger.error("Fail To Find Connector. >  " + JSON.stringify(data),new Error("Fail To Find Connector"));
             ack.acknowledge();
         }
     });
