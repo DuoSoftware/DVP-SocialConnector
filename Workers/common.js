@@ -89,6 +89,10 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
         };
 
+        console.log("CreateComment ----------------------------------   " );
+        console.log("CreateComment -----------------  url > " +url );
+        console.log("CreateComment -----------------  data > " + JSON.stringify(data) );
+        console.log("CreateComment ----------------------------------   /n" );
 
         request({
             method: "PUT",
@@ -141,6 +145,10 @@ function UpdateComment(tenant, company, cid,eid, cb){
             engagement_session: eid
         };
 
+        console.log("UpdateComment ----------------------------------   " );
+        console.log("UpdateComment -----------------  url > " +url );
+        console.log("UpdateComment -----------------  data > " + JSON.stringify(data) );
+        console.log("UpdateComment ----------------------------------  /n " );
 
         request({
             method: "PUT",
@@ -153,7 +161,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
         }, function (_error, _response, datax) {
 
             try {
-
+                console.log("UpdateComment ----------- >   " +JSON.stringify(_response));
                 if (!_error && _response && _response.statusCode == 200) {
 
                     logger.debug("Successfully updated the comment");
@@ -198,7 +206,11 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             raw: contact
         };
 
-        logger.debug("Calling Engagement service URL %s", engagementURL);
+        console.log("CreateEngagement ----------------------------------   " );
+        console.log("CreateEngagement -----------------  url > " +engagementURL );
+        console.log("CreateEngagement -----------------  data > " + JSON.stringify(engagementData) );
+        console.log("CreateEngagement ----------------------------------   /n" );
+
         request({
             method: "POST",
             url: engagementURL,
@@ -257,7 +269,12 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
 
 
 
-        logger.debug("Calling Ticket service URL %s", ticketURL);
+        console.log("CreateTicket ----------------------------------   " );
+        console.log("CreateTicket -----------------  url > " +ticketURL );
+        console.log("CreateTicket -----------------  data > " + JSON.stringify(ticketData) );
+        console.log("CreateTicket ----------------------------------   /n" );
+
+
         request({
             method: "POST",
             url: ticketURL,
