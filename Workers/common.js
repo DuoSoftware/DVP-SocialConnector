@@ -89,11 +89,6 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
         };
 
-        console.log("CreateComment ----------------------------------   \n" );
-        console.log(" -----------------  url > " +url );
-        console.log(" -----------------  data > " + JSON.stringify(data) );
-        console.log("CreateComment ----------------------------------   \n" );
-
         request({
             method: "PUT",
             url: url,
@@ -106,7 +101,6 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
             try {
 
-                console.log("CreateComment ----------- >   " +JSON.stringify(_response));
                 if (!_error && _response && _response.statusCode == 200) {
 
                     logger.debug("Successfully created a comment");
@@ -145,10 +139,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
             engagement_session: eid
         };
 
-        console.log("UpdateComment ------------------------------------------------------\n   " );
-        console.log("url > " +url );
-        console.log("data > " + JSON.stringify(data) );
-        console.log("UpdateComment ------------------------------------------------------  \n " );
+
 
         request({
             method: "PUT",
@@ -161,7 +152,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
         }, function (_error, _response, datax) {
 
             try {
-                console.log("UpdateComment ----------- >   " +JSON.stringify(_response));
+
                 if (!_error && _response && _response.statusCode == 200) {
 
                     logger.debug("Successfully updated the comment");
@@ -206,10 +197,7 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             raw: contact
         };
 
-        console.log("CreateEngagement ---------------------------------------------------  \n " );
-        console.log("url > " +engagementURL );
-        console.log("data > " + JSON.stringify(engagementData) );
-        console.log("CreateEngagement ---------------------------------------------------  \n" );
+
 
         request({
             method: "POST",
@@ -222,7 +210,7 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
         }, function (_error, _response, datax) {
 
             try {
-                console.log("CreateEngagement ----------- >   " +JSON.stringify(_response));
+
                 if (!_error && _response && _response.statusCode == 200&& _response.body && _response.body.IsSuccess) {
 
                     return cb(true,_response.body.Result);
@@ -268,11 +256,6 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
         };
 
 
-
-        console.log("CreateTicket -----------------------------------------------------  \n " );
-        console.log("url > " +ticketURL );
-        console.log("data > " + JSON.stringify(ticketData) );
-        console.log("CreateTicket -----------------------------------------------------   \n" );
 
 
         request({
