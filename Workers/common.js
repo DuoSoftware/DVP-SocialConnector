@@ -89,10 +89,10 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
         };
 
-        console.log("CreateComment ----------------------------------   " );
-        console.log("CreateComment -----------------  url > " +url );
-        console.log("CreateComment -----------------  data > " + JSON.stringify(data) );
-        console.log("CreateComment ----------------------------------   /n" );
+        console.log("CreateComment ----------------------------------   \n" );
+        console.log(" -----------------  url > " +url );
+        console.log(" -----------------  data > " + JSON.stringify(data) );
+        console.log("CreateComment ----------------------------------   \n" );
 
         request({
             method: "PUT",
@@ -145,10 +145,10 @@ function UpdateComment(tenant, company, cid,eid, cb){
             engagement_session: eid
         };
 
-        console.log("UpdateComment ----------------------------------   " );
-        console.log("UpdateComment -----------------  url > " +url );
-        console.log("UpdateComment -----------------  data > " + JSON.stringify(data) );
-        console.log("UpdateComment ----------------------------------  /n " );
+        console.log("UpdateComment ------------------------------------------------------\n   " );
+        console.log("url > " +url );
+        console.log("data > " + JSON.stringify(data) );
+        console.log("UpdateComment ------------------------------------------------------  \n " );
 
         request({
             method: "PUT",
@@ -206,10 +206,10 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             raw: contact
         };
 
-        console.log("CreateEngagement ----------------------------------   " );
-        console.log("CreateEngagement -----------------  url > " +engagementURL );
-        console.log("CreateEngagement -----------------  data > " + JSON.stringify(engagementData) );
-        console.log("CreateEngagement ----------------------------------   /n" );
+        console.log("CreateEngagement ---------------------------------------------------  \n " );
+        console.log("url > " +engagementURL );
+        console.log("data > " + JSON.stringify(engagementData) );
+        console.log("CreateEngagement ---------------------------------------------------  \n" );
 
         request({
             method: "POST",
@@ -269,10 +269,10 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
 
 
 
-        console.log("CreateTicket ----------------------------------   " );
-        console.log("CreateTicket -----------------  url > " +ticketURL );
-        console.log("CreateTicket -----------------  data > " + JSON.stringify(ticketData) );
-        console.log("CreateTicket ----------------------------------   /n" );
+        console.log("CreateTicket -----------------------------------------------------  \n " );
+        console.log("url > " +ticketURL );
+        console.log("data > " + JSON.stringify(ticketData) );
+        console.log("CreateTicket -----------------------------------------------------   \n" );
 
 
         request({
