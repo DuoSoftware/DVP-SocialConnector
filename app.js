@@ -39,9 +39,9 @@ var server = restify.createServer({
 
 
 var https_options = {
-    //ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
-    //key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    //certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
+    ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
+    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
 };
 
 var https_server = restify.createServer(https_options);
@@ -85,6 +85,41 @@ var setup_server = function (server) {
         res.send(200);
     });
 
+   /* server.post('/webhook', function (req, res) {
+        var data = req.body;
+
+        // Make sure this is a page subscription
+        if (data.object === 'page') {
+
+            // Iterate over each entry - there may be multiple if batched
+            data.entry.forEach(function(entry) {
+                var pageID = entry.id;
+                var timeOfEvent = entry.time;
+
+                // Iterate over each messaging event
+                entry.messaging.forEach(function(event) {
+                    if (event.message) {
+                        receivedMessage(event);
+                    } else {
+                        console.log("Webhook received unknown event: ", event);
+                    }
+                });
+            });
+
+            // Assume all went well.
+            //
+            // You must send back a 200, within 20 seconds, to let us know
+            // you've successfully received the callback. Otherwise, the request
+            // will time out and we will keep trying to resend.
+            res.sendStatus(200);
+        }
+    });
+
+    function receivedMessage(event) {
+        // Putting a stub for now, we'll expand it in the following steps
+        console.log("Message data: ", event.message);
+    }*/
+
     server.post('/instagram', function(req, res) {
         console.log('Instagram request body:');
         console.log(req.body);
@@ -115,6 +150,11 @@ server.post('DVP/API/:version/Social/TwitterToken', authorization({
 }), twitterService.GetTwitterOauthToken);
 
 
+server.post('DVP/API/:version/Social/Profile', authorization({
+    resource: "social",
+    action: "write"
+}), twitterService.GetProfile);
+
 server.post('DVP/API/:version/Social/Twitter', authorization({
     resource: "social",
     action: "write"
@@ -131,7 +171,9 @@ server.post('DVP/API/:version/Social/Twitter/:id/Cron/Start', authorization({
 server.post('DVP/API/:version/Social/Twitter/:id/directmessages', authorization({
     resource: "social",
     action: "read"
-}), twitterService.LoadTwitterMessages);
+}), twitterService.LoadTweets);
+
+//LoadTwitterMessages
 
 server.get('DVP/API/:version/Social/Twitter/:id/streammessages', authorization({
     resource: "social",

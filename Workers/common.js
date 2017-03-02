@@ -74,8 +74,6 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
             url = format("http://{0}:{1}/DVP/API/{2}/TicketByEngagement/{3}/Comment", config.Services.ticketServiceHost, config.Services.ticketServicePort,config.Services.ticketServiceVersion, engid);
 
 
-
-
         var data = {
 
             body: engagement.body,
@@ -90,7 +88,6 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
 
         };
-
 
         request({
             method: "PUT",
@@ -143,6 +140,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
         };
 
 
+        console.log("UpdateComment . cid : " + cid +" eid : "+eid+" url"+url);
         request({
             method: "PUT",
             url: url,
@@ -178,7 +176,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
 
 };
 
-function CreateEngagement(channel, company, tenant, from, to, direction, session, data, user, cb){
+function CreateEngagement(channel, company, tenant, from, to, direction, session, data, user,channel_id,contact,  cb){
 
     if((config.Services && config.Services.interactionurl && config.Services.interactionport && config.Services.interactionversion)) {
 
@@ -194,10 +192,13 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             channel_from:from,
             channel_to: to,
             body: data,
-            user: user
+            user: user,
+            channel_id: channel_id,
+            raw: contact
         };
 
-        logger.debug("Calling Engagement service URL %s", engagementURL);
+
+
         request({
             method: "POST",
             url: engagementURL,
@@ -256,7 +257,7 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
 
 
 
-        logger.debug("Calling Ticket service URL %s", ticketURL);
+
         request({
             method: "POST",
             url: ticketURL,
@@ -307,7 +308,7 @@ function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
             Reference: id,
             Description: "Direct message twitter",
-            CronePattern: format( "* */{0} * * * *",time),
+            CronePattern: format( "*/{0} * * * *",time),
             CallbackURL: mainServer,
             CallbackData: ""
 
@@ -348,6 +349,59 @@ function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
 }
 
+function StartStopCronJob(company, tenant, id,action,cb){
+
+    if((config.Services && config.Services.cronurl && config.Services.cronport && config.Services.cronversion)) {
+
+
+        var cronURL = format("http://{0}/DVP/API/{1}/Cron/Reference/{2}/Action/{3}", config.Services.cronurl, config.Services.cronversion,id,action);
+        if (validator.isIP(config.Services.cronurl))
+            cronURL = format("http://{0}:{1}/DVP/API/{2}/Cron/Reference/{3}/Action/{4}", config.Services.cronurl, config.Services.cronport, config.Services.cronversion,id,action);
+
+       /* var engagementData =  {
+
+            Reference: id,
+            Description: "Direct message twitter",
+            CronePattern: format( "*!/{0} * * * *",time),
+            CallbackURL: mainServer,
+            CallbackData: ""
+
+        };*/
+
+        logger.debug("StopCronJob service URL %s", cronURL);
+        request({
+            method: "POST",
+            url: cronURL,
+            headers: {
+                authorization: "bearer "+config.Services.accessToken,
+                companyinfo: format("{0}:{1}", tenant, company)
+            }
+        }, function (_error, _response, datax) {
+
+            try {
+
+                if (!_error && _response && _response.statusCode == 200&& _response.body && _response.body.IsSuccess) {
+
+                    return cb(true,_response.body.Result);
+
+                }else{
+
+                    logger.error("There is an error in  StopCronJob for this");
+                    return cb(false,{});
+
+
+                }
+            }
+            catch (excep) {
+
+                return cb(false,{});
+
+            }
+        });
+    }
+
+}
+
 
 module.exports.AddToRequest = AddToRequest;
 module.exports.CreateComment = CreateComment;
@@ -355,5 +409,6 @@ module.exports.CreateEngagement = CreateEngagement;
 module.exports.CreateTicket = CreateTicket;
 module.exports.RegisterCronJob = RegisterCronJob;
 module.exports.UpdateComment = UpdateComment;
+module.exports.StartStopCronJob = StartStopCronJob;
 
 
