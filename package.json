@@ -5,11 +5,11 @@
   "main": "app.js",
   "dependencies": {
     "amqp": "^0.2.6",
-    "async": "^2.0.0",
+    "async": "^2.1.4",
     "config": "^1.21.0",
     "dustjs-linkedin": "^2.7.3",
     "dvp-common": "^0.1.3",
-    "dvp-mongomodels": "^4.3.6",
+    "dvp-mongomodels": "^4.4.4",
     "fbgraph": "^1.2.0",
     "format": "^0.2.2",
     "fs": "0.0.2",

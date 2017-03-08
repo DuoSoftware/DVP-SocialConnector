@@ -37,15 +37,18 @@ queueConnection.on('ready', function () {
         q.bind('#');
         q.subscribe({
             ack: true,
-            prefetchCount: 10
+            prefetchCount: 5
         }, function (message, headers, deliveryInfo, ack) {
 
-            message = JSON.parse(message.data.toString());
-
-            if (!message || !message.to || !message.from || !message.company || !message.tenant) {
-                console.log('Invalid message, skipping');
+            /*message = JSON.parse(message.data.toString());*/
+            //logger.info(message);
+            if (!message || !message.to || !message.company || !message.tenant) {
+                logger.error('SMS - Invalid message, skipping');
                 return ack.acknowledge();
             }
+            //!message.from ||
+            
+              message.from = "0710400400";
             ///////////////////////////create body/////////////////////////////////////////////////
 
 
@@ -70,10 +73,7 @@ function SendSMPP(company, tenant, mailoptions, cb){
 
                     logger.debug("Successfully send sms");
 
-
-
-
-                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text,undefined, function (done, result) {
+                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text,undefined, undefined,undefined,function (done, result) {
                             if (done) {
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){
@@ -150,7 +150,7 @@ function SendSMPP(company, tenant, mailoptions, cb){
 
                 } else {
 
-                    logger.error("Send SMS Failed "+_error);
+                    logger.error("Send SMS Failed ");
                     return cb(false);
 
                 }
@@ -190,7 +190,7 @@ function SendRequest(company, tenant, mailoptions, cb){
 
                         var sessionid=   arr[1].replace(/['"]+/g, '');
 
-                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text,undefined, function (done, result) {
+                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', sessionid, mailoptions.text,undefined,undefined,undefined, function (done, result) {
                             if (done) {
                                 logger.debug("engagement created successfully");
                                 if(mailoptions.reply_session){
@@ -358,7 +358,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                             SendSMPP(company, tenant, mailOptions, function (done) {
 
                                                 if (!done)
-                                                    ack.reject(true);
+                                                    ack.acknowledge();
+                                                        //.reject(true);
                                                 else
                                                     ack.acknowledge();
 
@@ -367,7 +368,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                             SendRequest(company, tenant, mailOptions, function (done) {
 
                                                 if (!done)
-                                                    ack.reject(true);
+                                                    //ack.reject(true);
+                                                    ack.acknowledge();
                                                 else
                                                     ack.acknowledge();
 
@@ -384,7 +386,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                     SendSMPP(company, tenant, mailOptions, function (done) {
 
                                         if (!done)
-                                            ack.reject(true);
+                                            //ack.reject(true);
+                                            ack.acknowledge();
                                         else
                                             ack.acknowledge();
 
@@ -394,7 +397,8 @@ function SendSMS(message, deliveryInfo, ack) {
                                     SendRequest(company, tenant, mailOptions, function (done) {
 
                                         if (!done)
-                                            ack.reject(true);
+                                            //ack.reject(true);
+                                            ack.acknowledge();
                                         else
                                             ack.acknowledge();
 
@@ -407,14 +411,17 @@ function SendSMS(message, deliveryInfo, ack) {
                 }else{
 
                     logger.error("No template found");
-                    ack.reject(true);
+                    //ack.reject(true);
+                    ack.acknowledge();
+
                 }
 
             }else{
 
 
                 logger.error("Pick template failed ",errPickTemplate);
-                ack.reject(true);
+                //ack.reject(true);
+                ack.acknowledge();
 
             }
 
@@ -426,7 +433,8 @@ function SendSMS(message, deliveryInfo, ack) {
             SendSMPP(company, tenant, mailOptions, function (done) {
 
                 if (!done)
-                    ack.reject(true);
+                    //ack.reject(true);
+                    ack.acknowledge();
                 else
                     ack.acknowledge();
 
@@ -436,7 +444,8 @@ function SendSMS(message, deliveryInfo, ack) {
             SendRequest(company, tenant, mailOptions, function (done) {
 
                 if (!done)
-                    ack.reject(true);
+                    //ack.reject(true);
+                    ack.acknowledge();
                 else
                     ack.acknowledge();
 

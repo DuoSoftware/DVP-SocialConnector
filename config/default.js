@@ -3,7 +3,7 @@ module.exports = {
 
   TWITTER_KEY: 'dUTFwOCHWXpvuLSsgQ7zvOPRK',
   TWITTER_SECRET: 'KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9',
-  TWITTER_CALLBACK_URL:  'http://localhost:63342/',
+  TWITTER_CALLBACK_URL:  'http://localhost:63342/DVP-AdminConsole/#/console/social/twitter',
 
 
   "DB": {
@@ -89,7 +89,7 @@ module.exports = {
 
   "LBServer" : {
 
-    "ip": "192.168.0.123",
+    "ip": "104.236.197.119",
     "port": "4647"
 
   },
@@ -129,12 +129,12 @@ module.exports = {
     //
 
 
-    "cronurl": "scheduleworker.app.veery.cloud",
+    "cronurl": "scheduleworker.app.veery.cloud",//scheduleworker.app.veery.cloud
     "cronport": '8080',
     "cronversion":"1.0.0.0",
 
 
-    "ticketServiceHost": "liteticket.app.veery.cloud",
+    "ticketServiceHost": "liteticket.app.veery.cloud", //liteticket.app.veery.cloud
     "ticketServicePort": "3636",
     "ticketServiceVersion": "1.0.0.0",
 
@@ -142,7 +142,7 @@ module.exports = {
     "ardsServicePort": "8831",
     "ardsServiceVersion": "1.0.0.0",
 
-    "facebookUrl" : "https://graph.facebook.com/v2.7/"
+    "facebookUrl" : "https://graph.facebook.com/v2.8/"
 
 
   },
@@ -150,7 +150,8 @@ module.exports = {
   "SocialConnector":
   {
     "fb_client_id":"825442624259571",
-    "fb_client_secret":"85eab7232db0c38abd7d04baa358382f"
+    "fb_client_secret":"85eab7232db0c38abd7d04baa358382f",
+    "owner_id":"124278164680278,124278164680845"
   }
 
 };
