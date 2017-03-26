@@ -41,7 +41,7 @@ queueConnection.on('ready', function () {
         }, function (message, headers, deliveryInfo, ack) {
 
             /*message = JSON.parse(message.data.toString());*/
-            logger.info(message);
+            //logger.info(message);
             if (!message || !message.to || !message.company || !message.tenant) {
                 logger.error('SMS - Invalid message, skipping');
                 return ack.acknowledge();

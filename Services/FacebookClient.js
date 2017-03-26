@@ -87,7 +87,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     newUser.fb.access_token = JSON.parse(body).access_token; // we will save the token that facebook provides to the user
                     newUser.fb.firstName = profile.fb.firstName;
                     newUser.fb.lastName = profile.fb.lastName; // look at the passport user profile to see how names are returned
-                    newUser.fb.email = profile.fb.email?profile.fb.email:"noemail@facetone.com"; // facebook can return multiple emails so we'll take the first
+                    newUser.fb.email = profile.fb.email ? profile.fb.email : "noemail@facetone.com"; // facebook can return multiple emails so we'll take the first
                     newUser.fb.clientID = config.SocialConnector.fb_client_id;
                     newUser.fb.clientSecret = config.SocialConnector.fb_client_secret;
                     newUser.company = company;
@@ -97,7 +97,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     newUser.fb.pagePicture = profile.fb.pagePicture;
                     newUser.fb.ticketToPost = true;
                     newUser.fb.profileID = profile.profileID;
-                    newUser.fb.profileName= profile.profileName;
+                    newUser.fb.profileName = profile.profileName;
                     // save our user to the database
                     newUser.save(function (err, obj) {
                         if (err) {
@@ -201,11 +201,11 @@ module.exports.ActiveteFacebookAccount = function (req, res) {
                     res.end(jsonString);
                 }
                 else {
-                    var tok =JSON.parse(body).access_token
+                    var tok = JSON.parse(body).access_token
                     user.update({
                         "$set": {
                             "fb.status": true,
-                            "fb.access_token":tok,
+                            "fb.access_token": tok,
                             "updated_at": Date.now()
                         }
                     }, function (err) {
@@ -219,8 +219,8 @@ module.exports.ActiveteFacebookAccount = function (req, res) {
                             res.end(jsonString);
                         }
                     });
-                }});
-
+                }
+            });
 
 
         }
@@ -804,21 +804,26 @@ module.exports.RealTimeUpdates = function (fbData) {
 
         console.log(items);
 
+        var ownerIds = config.SocialConnector.owner_id.split(",");
+
         items.changes.forEach(function (change) {
-            if (change.value.sender_id.toString() === config.SocialConnector.fb_client_id){
-                console.log("Comment By Owner....................................");
-                return;
-            }
-            if (change.field == "feed") {
-                if (change.value.item == "status" || change.value.item == "post") {
-                    // create ticket
-                    RealTimeCreateTicket(items.id, change.value);
+            /*if (change.value.sender_id.toString() === config.SocialConnector.owner_id){*/
+                if (ownerIds.indexOf(change.value.sender_id.toString()) === -1) {
+                    if (change.field == "feed") {
+                        if (change.value.item == "status" || change.value.item == "post") {
+                            // create ticket
+                            RealTimeCreateTicket(items.id, change.value);
+                        }
+                        else if (change.value.item == "comment") {
+                            // add comment
+                            RealTimeComments(items.id, change.value);
+                        }
+                    }
+
                 }
-                else if (change.value.item == "comment") {
-                    // add comment
-                    RealTimeComments(items.id, change.value);
+                else {
+                    console.log("Comment By Owner....................................");
                 }
-            }
 
         });
     });
@@ -849,15 +854,20 @@ var RealTimeComments = function (id, fbData) {
                 user.id = fbData.sender_id;
                 user.channel = 'facebook';
 
-                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message,user,fbData.sender_id,to, function (isSuccess, engagement) {
+                console.log("CreateEngagement");
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.comment_id, fbData.message, user, fbData.sender_id, to, function (isSuccess, engagement) {
+                    console.log("CreateEngagement ......" +isSuccess);
                     if (isSuccess) {
+                        console.log("CreateEngagement-------------- " + JSON.stringify(fbData));
                         CreateComment('facebook-post', 'Comment', company, tenant, fbData.parent_id, undefined, engagement, function (done) {
+                            console.log("CreateComment ......" +done);
                             if (!done) {
-                                logger.error("Fail To Add Comments" + fbData.post_id);
+                                logger.error("Fail To Add Comments" + JSON.stringify(fbData));
                             } else {
 
-                                logger.info("Facebook Comment Added successfully " + fbData.post_id);
+                                logger.info("Facebook Comment Added successfully " + fbData.parent_id);
                             }
+
                         })
 
                     } else {
@@ -905,7 +915,7 @@ var RealTimeCreateTicket = function (id, fbData) {
                 user.id = fbData.sender_id;
                 user.channel = 'facebook';
 
-                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.post_id, fbData.message, user,fbData.sender_id,to, function (isSuccess, engagement) {
+                CreateEngagement("facebook-post", company, tenant, fbData.sender_name, to.name, "inbound", fbData.post_id, fbData.message, user, fbData.sender_id, to, function (isSuccess, engagement) {
 
                     if (isSuccess) {
 
@@ -987,7 +997,7 @@ var processFacebookWallData = function (fbData) {
                 if (item.data) {
                     item.data.forEach(function (wallpost) {
                         createTicketTasks.push(function (callback) {
-                            CreateEngagement("facebook-post", item.fbConnector.company, item.fbConnector.tenant, wallpost.from.id, JSON.stringify(wallpost.to), "inbound", wallpost.id, wallpost.message, undefined,undefined, function (isSuccess, engagement) {
+                            CreateEngagement("facebook-post", item.fbConnector.company, item.fbConnector.tenant, wallpost.from.id, JSON.stringify(wallpost.to), "inbound", wallpost.id, wallpost.message, undefined, undefined, function (isSuccess, engagement) {
 
                                 if (isSuccess) {
 

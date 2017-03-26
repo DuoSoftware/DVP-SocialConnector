@@ -89,7 +89,6 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
         };
 
-
         request({
             method: "PUT",
             url: url,
@@ -101,7 +100,6 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
         }, function (_error, _response, datax) {
 
             try {
-
 
                 if (!_error && _response && _response.statusCode == 200) {
 
@@ -142,6 +140,7 @@ function UpdateComment(tenant, company, cid,eid, cb){
         };
 
 
+        console.log("UpdateComment . cid : " + cid +" eid : "+eid+" url"+url);
         request({
             method: "PUT",
             url: url,
@@ -198,7 +197,8 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             raw: contact
         };
 
-        logger.debug("Calling Engagement service URL %s", engagementURL);
+
+
         request({
             method: "POST",
             url: engagementURL,
@@ -257,7 +257,7 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
 
 
 
-        logger.debug("Calling Ticket service URL %s", ticketURL);
+
         request({
             method: "POST",
             url: ticketURL,
