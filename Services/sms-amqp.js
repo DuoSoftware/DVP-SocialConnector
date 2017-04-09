@@ -327,6 +327,7 @@ function SendSMS(message, deliveryInfo, ack) {
                         if(errRendered)
                         {
                             logger.error("Error in rendering "+ errRendered);
+                            ack.acknowledge();
                         }
                         else
                         {
