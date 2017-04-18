@@ -30,6 +30,11 @@ if(smsmode == 'smpp'){
 
 var queueConnection = amqp.createConnection({
     url: queueHost
+}, {
+    reconnect: true,
+    reconnectBackoffStrategy: 'linear',
+    reconnectExponentialLimit: 120000,
+    reconnectBackoffTime: 1000
 });
 
 queueConnection.on('ready', function () {
