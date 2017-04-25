@@ -142,8 +142,11 @@ module.exports = {
     "ardsServicePort": "8831",
     "ardsServiceVersion": "1.0.0.0",
 
-    "facebookUrl" : "https://graph.facebook.com/v2.8/"
+    "facebookUrl" : "https://graph.facebook.com/v2.8/",
 
+    "ruleserviceurl" : "ruleservice.app.veery.cloud",
+    "ruleserviceport" : "8888",
+    "ruleserviceversion" : "1.0.0.0"
 
   },
 
