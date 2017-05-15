@@ -5,6 +5,7 @@ var format = require("stringformat");
 var CreateEngagement = require('../Workers/common').CreateEngagement;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateTicket = require('../Workers/common').CreateTicket;
+var GetCallRule = require('../Workers/common').GetCallRule;
 var UpdateComment = require('../Workers/common').UpdateComment;
 var config = require('config');
 var validator = require('validator');
@@ -27,9 +28,13 @@ if(smsmode == 'smpp'){
 }
 
 
-
 var queueConnection = amqp.createConnection({
     url: queueHost
+}, {
+    reconnect: true,
+    reconnectBackoffStrategy: 'linear',
+    reconnectExponentialLimit: 120000,
+    reconnectBackoffTime: 1000
 });
 
 queueConnection.on('ready', function () {
@@ -47,12 +52,30 @@ queueConnection.on('ready', function () {
                 return ack.acknowledge();
             }
             //!message.from ||
-            
-              message.from = "0710400400";
+
+
+
+            GetCallRule(message.company , message.tenant, message.from, message.to, "SMS", function(isDone, result){
+                if(isDone){
+
+                    if(result && result.TrunkNumber){
+
+                        message.from =  result.TrunkNumber;
+                        SendSMS(message,  deliveryInfo.deliveryTag.toString('hex'), ack);
+
+                    }else{
+
+                        message.from = "0710400400";
+                        SendSMS(message,  deliveryInfo.deliveryTag.toString('hex'), ack);
+                    }
+
+                }else{
+                    message.from = "0710400400";
+                    SendSMS(message,  deliveryInfo.deliveryTag.toString('hex'), ack);
+                }
+            });
             ///////////////////////////create body/////////////////////////////////////////////////
 
-
-            SendSMS(message,  deliveryInfo.deliveryTag.toString('hex'), ack);
         });
     });
 });
@@ -73,86 +96,83 @@ function SendSMPP(company, tenant, mailoptions, cb){
 
                     logger.debug("Successfully send sms");
 
-                        CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text,undefined, undefined,undefined,function (done, result) {
-                            if (done) {
-                                logger.debug("engagement created successfully");
-                                if(mailoptions.reply_session){
+                    CreateEngagement('sms', company, tenant, mailoptions.from, mailoptions.to, 'outbound', id, mailoptions.text, undefined, undefined, undefined, function (done, result) {
+                        if (done) {
+                            logger.debug("engagement created successfully");
+                            if (mailoptions.reply_session) {
 
-                                    CreateComment('sms','text',company, tenant, mailoptions.reply_session, mailoptions.author,result, function (done) {
-                                        if (!done) {
-                                            logger.error("comment creation failed");
-                                            return cb(true);
-                                        }else{
-                                            logger.debug("comment created successfully");
-                                            return cb(true);
-                                        }
-                                    });
-                                }
-                                else {
-
-
-                                    if (mailoptions.ticket) {
-
-                                        var ticket_type = 'action';
-                                        var ticket_priority = 'low';
-                                        var ticket_tags = [];
-
-                                        if (mailoptions.ticket_type) {
-                                            ticket_type = mailoptions.ticket_type;
-                                        }
-
-                                        if (mailoptions.ticket_priority) {
-                                            ticket_priority = mailoptions.ticket_priority;
-                                        }
-
-                                        if (mailoptions.ticket_tags) {
-                                            ticket_tags = mailoptions.ticket_tags;
-                                        }
-
-                                        CreateTicket("sms", sessionid, result.profile_id, company, tenant, ticket_type, mailoptions.text, mailoptions.text, ticket_priority, ticket_tags, function (done) {
-                                            if (done) {
-                                                logger.info("Create Ticket Completed ");
-                                            } else {
-                                                logger.error("Create Ticket Failed ");
-                                            }
-                                            return cb(true);
-                                        });
+                                CreateComment('sms', 'text', company, tenant, mailoptions.reply_session, mailoptions.author, result, function (done) {
+                                    if (!done) {
+                                        logger.error("comment creation failed");
+                                        return cb(true);
                                     } else {
+                                        logger.debug("comment created successfully");
+                                        return cb(true);
+                                    }
+                                });
+                            }
+                            else {
 
-                                        if (mailoptions.comment) {
 
-                                            UpdateComment(mailoptions.comment, id, function (done) {
-                                                if (done) {
-                                                    logger.info("Update Comment Completed ");
+                                if (mailoptions.ticket) {
 
-                                                } else {
+                                    var ticket_type = 'action';
+                                    var ticket_priority = 'low';
+                                    var ticket_tags = [];
 
-                                                    logger.error("Update Comment Failed ");
-
-                                                }
-
-                                                return cb(true);
-                                            });
-
-                                        } else {
-                                            return cb(true);
-                                        }
+                                    if (mailoptions.ticket_type) {
+                                        ticket_type = mailoptions.ticket_type;
                                     }
 
+                                    if (mailoptions.ticket_priority) {
+                                        ticket_priority = mailoptions.ticket_priority;
+                                    }
+
+                                    if (mailoptions.ticket_tags) {
+                                        ticket_tags = mailoptions.ticket_tags;
+                                    }
+
+                                    CreateTicket("sms", sessionid, result.profile_id, company, tenant, ticket_type, mailoptions.text, mailoptions.text, ticket_priority, ticket_tags, function (done) {
+                                        if (done) {
+                                            logger.info("Create Ticket Completed ");
+                                        } else {
+                                            logger.error("Create Ticket Failed ");
+                                        }
+                                        return cb(true);
+                                    });
+                                } else {
+
+                                    if (mailoptions.comment) {
+
+                                        UpdateComment(mailoptions.comment, id, function (done) {
+                                            if (done) {
+                                                logger.info("Update Comment Completed ");
+
+                                            } else {
+
+                                                logger.error("Update Comment Failed ");
+
+                                            }
+
+                                            return cb(true);
+                                        });
+
+                                    } else {
+                                        return cb(true);
+                                    }
                                 }
-                            } else {
-                                logger.error("engagement creation failed");
-                                return cb(false);
+
                             }
-                        });
-
-
+                        } else {
+                            logger.error("engagement creation failed");
+                            return cb(false);
+                        }
+                    });
 
                 } else {
 
                     logger.error("Send SMS Failed ");
                     return cb(false);
-
                 }
             }
             catch (excep) {
@@ -327,6 +347,7 @@ function SendSMS(message, deliveryInfo, ack) {
                         if(errRendered)
                         {
                             logger.error("Error in rendering "+ errRendered);
+                            ack.acknowledge();
                         }
                         else
                         {

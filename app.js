@@ -39,9 +39,9 @@ var server = restify.createServer({
 
 
 var https_options = {
-    ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
-    key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
+    //ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    //key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
+    //certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
 };
 
 var https_server = restify.createServer(https_options);
@@ -323,10 +323,30 @@ var mongoport = config.Mongo.port;
 var mongodb = config.Mongo.dbname;
 var mongouser = config.Mongo.user;
 var mongopass = config.Mongo.password;
+var mongoreplicaset=config.Mongo.replicaset;
 
 
 var mongoose = require('mongoose');
-var connectionstring = util.format('mongodb://%s:%s@%s:%d/%s', mongouser, mongopass, mongoip, mongoport, mongodb);
+var connectionstring = '';
+mongoip = mongoip.split(',');
+if(util.isArray(mongoip)){
+
+    mongoip.forEach(function(item){
+        connectionstring += util.format('%s:%d,',item,mongoport)
+    });
+
+    connectionstring = connectionstring.substring(0, connectionstring.length - 1);
+    connectionstring = util.format('mongodb://%s:%s@%s/%s',mongouser,mongopass,connectionstring,mongodbase);
+
+    if(mongoreplicaset){
+        connectionstring = util.format('%s?replicaSet=%s',connectionstring,mongoreplicaset) ;
+        console.log("connectionstring ...   "+connectionstring);
+    }
+}else{
+
+    connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodbase);
+    console.log("connectionstring ...   "+connectionstring);
+}
 
 
 mongoose.connection.on('error', function (err) {
