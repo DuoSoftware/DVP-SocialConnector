@@ -81,12 +81,12 @@ queueConnection.on('ready', function () {
 });
 
 
-connection.on('error', function (error) {
+queueConnection.on('error', function (error) {
     logger.error('AMQP connection error' ,error);
 
 });
 
-connection.on('close', function () {
+queueConnection.on('close', function () {
     console.log('AMQP Connection close ');
 
 });
