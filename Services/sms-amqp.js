@@ -80,6 +80,17 @@ queueConnection.on('ready', function () {
     });
 });
 
+
+connection.on('error', function (error) {
+    logger.error('AMQP connection error' ,error);
+
+});
+
+connection.on('close', function () {
+    console.log('AMQP Connection close ');
+
+});
+
 var mainServer = format("http://{0}", config.LBServer.ip);
 
 if(validator.isIP(config.LBServer.ip))
