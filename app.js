@@ -340,19 +340,19 @@ if(util.isArray(mongoip)){
 
     if(mongoreplicaset){
         connectionstring = util.format('%s?replicaSet=%s',connectionstring,mongoreplicaset) ;
-        console.log("connectionstring ...   "+connectionstring);
+        logger.info("connectionstring ...   "+connectionstring);
     }
  }
     else
     {
         connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip[0],mongoport,mongodb);
     }
-}else{
+}else {
 
-    connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb);
-   
+    connectionstring = util.format('mongodb://%s:%s@%s:%d/%s', mongouser, mongopass, mongoip, mongoport, mongodb);
+
 }
- console.log("connectionstring ...   "+connectionstring);
+logger.info("connectionstring ...   "+connectionstring);
 
 mongoose.connection.on('error', function (err) {
     logger.error(err);
