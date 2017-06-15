@@ -16,7 +16,7 @@ var uuid = require('node-uuid');
 
 
 
-var queueHost = format('amqp://{0}:{1}@{2}:{3}',config.RabbitMQ.user,config.RabbitMQ.password,config.RabbitMQ.ip,config.RabbitMQ.port);
+var queueHost = format('amqp://{0}:{1}@{2}:{3}?heartbeat=30',config.RabbitMQ.user,config.RabbitMQ.password,config.RabbitMQ.ip,config.RabbitMQ.port);
 var queueName = config.Host.smsQueueName;
 
 
@@ -78,6 +78,17 @@ queueConnection.on('ready', function () {
 
         });
     });
+});
+
+
+queueConnection.on('error', function (error) {
+    logger.error('AMQP connection error' ,error);
+
+});
+
+queueConnection.on('close', function () {
+    console.log('AMQP Connection close ');
+
 });
 
 var mainServer = format("http://{0}", config.LBServer.ip);

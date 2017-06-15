@@ -113,7 +113,7 @@ session.on('pdu', function(pdu){
             text = pdu.short_message.message;
         }
 
-        logger.info('SMS ' + from + ' -> ' + to + ': ' + text);
+        logger.info('SMS ' + fromNumber + ' -> ' + toNumber + ': ' + text);
 
         // Reply to SMSC that we received and processed the SMS
         session.deliver_sm_resp({ sequence_number: pdu.sequence_number });
