@@ -14,7 +14,6 @@ var dust = require('dustjs-linkedin');
 var juice = require('juice');
 var config = require('config');
 var validator = require('validator');
-var amqp = require('amqp');
 
 
 var mainServer = format("http://{0}", config.LBServer.ip);

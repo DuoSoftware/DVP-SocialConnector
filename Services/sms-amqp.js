@@ -29,7 +29,8 @@ if(smsmode == 'smpp'){
 
 
 var queueConnection = amqp.createConnection({
-    url: queueHost
+    url: queueHost,
+    heartbeat:10
 }, {
     reconnect: true,
     reconnectBackoffStrategy: 'linear',
