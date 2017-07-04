@@ -24,12 +24,13 @@ var queueName = config.Host.twitterQueueName;
 var _twitterConsumerKey = "dUTFwOCHWXpvuLSsgQ7zvOPRK";
 var _twitterConsumerSecret = "KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9";
 
+var rabbitmqIP = [];
 if(config.RabbitMQ.ip) {
-    config.RabbitMQ.ip = config.RabbitMQ.ip.split(",");
+    rabbitmqIP = config.RabbitMQ.ip.split(",");
 }
 
 var queueConnection = amqp.createConnection({
-    host: config.RabbitMQ.ip,
+    host: rabbitmqIP,
     port: config.RabbitMQ.port,
     login: config.RabbitMQ.user,
     password: config.RabbitMQ.password,

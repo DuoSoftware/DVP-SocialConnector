@@ -27,13 +27,13 @@ if(smsmode == 'smpp'){
     smpp = require('../Workers/smpp');
 }
 
-
+var rabbitmqIP = [];
 if(config.RabbitMQ.ip) {
-    config.RabbitMQ.ip = config.RabbitMQ.ip.split(",");
+    rabbitmqIP = config.RabbitMQ.ip.split(",");
 }
 
 var queueConnection = amqp.createConnection({
-    host: config.RabbitMQ.ip,
+    host: rabbitmqIP,
     port: config.RabbitMQ.port,
     login: config.RabbitMQ.user,
     password: config.RabbitMQ.password,
