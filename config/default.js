@@ -18,20 +18,33 @@ module.exports = {
 
   "Redis":
   {
+    "mode":"sentinel",//instance, cluster, sentinel
     "ip": "45.55.142.207",
     "port": 6389,
     "user": "duo",
-    "password": "DuoS123"
+    "password": "DuoS123",
+    "sentinels":{
+      "hosts": "138.197.90.92,45.55.205.92,138.197.90.92",
+      "port":16389,
+      "name":"redis-cluster"
+    }
 
   },
 
 
   "Security":
   {
+
     "ip" : "45.55.142.207",
     "port": 6389,
     "user": "duo",
-    "password": "DuoS123"
+    "password": "DuoS123",
+    "mode":"sentinel",//instance, cluster, sentinel
+    "sentinels":{
+      "hosts": "138.197.90.92,45.55.205.92,138.197.90.92",
+      "port":16389,
+      "name":"redis-cluster"
+    }
   },
 
 
@@ -97,7 +110,7 @@ module.exports = {
 
   "Mongo":
   {
-    "ip":"45.55.142.207",
+    "ip":"104.236.231.11",
     "port":"27017",
     "dbname":"dvpdb",
     "password":"DuoS123",
@@ -148,15 +161,25 @@ module.exports = {
 
     "ruleserviceurl" : "ruleservice.app.veery.cloud",
     "ruleserviceport" : "8888",
-    "ruleserviceversion" : "1.0.0.0"
+    "ruleserviceversion" : "1.0.0.0",
+
+    "fileServiceHost": "fileservice.app.veery.cloud",
+    "fileServicePort": 5645,
+    "fileServiceVersion":"1.0.0.0"
 
   },
 
   "SocialConnector":
   {
-    "fb_client_id":"825442624259571",
-    "fb_client_secret":"85eab7232db0c38abd7d04baa358382f",
-    "owner_id":"124278164680278,124278164680845"
+    //"fb_client_id":"825442624259571",
+    //"fb_client_secret":"85eab7232db0c38abd7d04baa358382f",
+    //"owner_id":"124278164680278,124278164680845"
+
+
+    "fb_client_id":"1339841416135058",
+    "fb_client_secret":"21391d2aef1b811b53c11be90094bab6",
+    "owner_id":"891072687711352"
+
   }
 
 };

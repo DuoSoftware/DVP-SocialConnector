@@ -77,56 +77,63 @@ module.exports.CreateFacebookAccount = function (req, res) {
                 }
                 else {
 
-                    // if there is no user found with that facebook id, create them
-                    var newUser = new SocialConnector();
+                    generatePageAccessToken(JSON.parse(body).access_token,profile.fb.pageID,function (err, data) {
 
-                    // set all of the facebook information in our user model
-                    newUser._id = profile.id; // set the users facebook id
-                    newUser.fb = {};
-                    newUser.fb.status = true;
-                    newUser.fb.access_token = JSON.parse(body).access_token; // we will save the token that facebook provides to the user
-                    newUser.fb.firstName = profile.fb.firstName;
-                    newUser.fb.lastName = profile.fb.lastName; // look at the passport user profile to see how names are returned
-                    newUser.fb.email = profile.fb.email ? profile.fb.email : "noemail@facetone.com"; // facebook can return multiple emails so we'll take the first
-                    newUser.fb.clientID = config.SocialConnector.fb_client_id;
-                    newUser.fb.clientSecret = config.SocialConnector.fb_client_secret;
-                    newUser.company = company;
-                    newUser.tenant = tenant;
-                    newUser.fb.lastUpdate = moment().unix();
-                    newUser.fb.pageID = profile.fb.pageID;
-                    newUser.fb.pagePicture = profile.fb.pagePicture;
-                    newUser.fb.ticketToPost = true;
-                    newUser.fb.profileID = profile.profileID;
-                    newUser.fb.profileName = profile.profileName;
-                    // save our user to the database
-                    newUser.save(function (err, obj) {
-                        if (err) {
+                        logger.info(data);
+
+                        if(JSON.parse(data) && JSON.parse(data).access_token) {
+
+                            var page_access_token = JSON.parse(data).access_token;
+
+                            subscribePageToApp(JSON.parse(data).access_token, profile.fb.pageID, function (err, data) {
+                                logger.info(data);
+
+                                var newUser = new SocialConnector();
+
+                                // set all of the facebook information in our user model
+                                newUser._id = profile.id; // set the users facebook id
+                                newUser.fb = {};
+                                newUser.fb.status = true;
+                                newUser.fb.access_token = page_access_token;
+                                    //JSON.parse(body).access_token; // we will save the token that facebook provides to the user
+                                newUser.fb.firstName = profile.fb.firstName;
+                                newUser.fb.lastName = profile.fb.lastName; // look at the passport user profile to see how names are returned
+                                newUser.fb.email = profile.fb.email ? profile.fb.email : "noemail@facetone.com"; // facebook can return multiple emails so we'll take the first
+                                newUser.fb.clientID = config.SocialConnector.fb_client_id;
+                                newUser.fb.clientSecret = config.SocialConnector.fb_client_secret;
+                                newUser.company = company;
+                                newUser.tenant = tenant;
+                                newUser.fb.lastUpdate = moment().unix();
+                                newUser.fb.pageID = profile.fb.pageID;
+                                newUser.fb.pagePicture = profile.fb.pagePicture;
+                                newUser.fb.ticketToPost = true;
+                                newUser.fb.profileID = profile.profileID;
+                                newUser.fb.profileName = profile.profileName;
+                                // save our user to the database
+                                newUser.save(function (err, obj) {
+                                    if (err) {
+                                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                                        res.end(jsonString);
+                                    }
+                                    else {
+
+                                        jsonString = messageFormatter.FormatMessage(undefined, "Facebook Saved Successfully", true, obj);
+                                        res.end(jsonString);
+                                    }
+                                });
+
+                            });
+
+
+                        }else{
+
                             jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
                             res.end(jsonString);
                         }
-                        else {
-
-                            /*var mainServer = format("http://{0}/DVP/API/{1}/Social/fb/{2}/wall/posts", config.LBServer.ip, config.Host.version, profile.id);
-
-                             if (validator.isIP(config.LBServer.ip))
-                             mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/fb/{3}/wall/posts", config.LBServer.ip, config.LBServer.port, config.Host.version, profile.id);
-
-                             RegisterCronJob(company, tenant, 10, req.body.id, mainServer, function (isSuccess) {
-
-                             if (isSuccess) {
-                             jsonString = messageFormatter.FormatMessage(undefined, "Facebook and cron saved successfully", true, obj);
-                             }
-                             else {
-                             jsonString = messageFormatter.FormatMessage(undefined, "Facebook saved but cron failed", false, obj);
-                             }
-                             res.end(jsonString);
-
-                             });*/
-
-                            jsonString = messageFormatter.FormatMessage(undefined, "Facebook Saved Successfully", true, obj);
-                            res.end(jsonString);
-                        }
                     });
+
+
+                    // if there is no user found with that facebook id, create them
 
                 }
 
@@ -154,21 +161,33 @@ module.exports.DeleteFacebookAccount = function (req, res) {
         // if the user is found, then log them in
         if (user) {
 
-            user.update({
-                "$set": {
-                    "fb.status": false,
-                    "updated_at": Date.now()
+
+            unSubscribePageToApp(user.fb.access_token,user.fb.pageID,function(error,data){
+
+                if(error){
+
+                    console.error("Unsubscribed to page is failed",error);
+                }else{
+                    console.error("unsubscribe frompage successfully..... ");
                 }
-            }, function (err) {
-                if (err) {
-                    jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                    res.end(jsonString);
-                }
-                else {
-                    // if successful, return the new user
-                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Removed.", true, undefined);
-                    res.end(jsonString);
-                }
+
+                user.update({
+                    "$set": {
+                        "fb.status": false,
+                        "updated_at": Date.now()
+                    }
+                }, function (err) {
+                    if (err) {
+                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                        res.end(jsonString);
+                    }
+                    else {
+                        // if successful, return the new user
+                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully Removed.", true, undefined);
+                        res.end(jsonString);
+                    }
+                });
+
             });
 
         }
@@ -194,33 +213,77 @@ module.exports.ActiveteFacebookAccount = function (req, res) {
         }
 
         // if the user is found, then log them in
-        if (user) {
+        if (user && user.fb) {
 
-            generateLongLivedToken(profile.fb.access_token, function (err, body) {
-                if (err) {
-                    res.end(jsonString);
-                }
-                else {
-                    var tok = JSON.parse(body).access_token
-                    user.update({
-                        "$set": {
-                            "fb.status": true,
-                            "fb.access_token": tok,
-                            "updated_at": Date.now()
-                        }
-                    }, function (err) {
-                        if (err) {
-                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                            res.end(jsonString);
-                        }
-                        else {
-                            // if successful, return the new user
-                            jsonString = messageFormatter.FormatMessage(undefined, "Successfully Removed.", true, undefined);
-                            res.end(jsonString);
-                        }
-                    });
-                }
+
+            subscribePageToApp(user.fb.access_token, user.fb.pageID, function (err, data) {
+
+
+                user.update({
+                    "$set": {
+                        "fb.status": true,
+                        //"fb.access_token": tok,
+                        "updated_at": Date.now()
+                    }
+                }, function (err) {
+                    if (err) {
+                        jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                        res.end(jsonString);
+                    }
+                    else {
+                        // if successful, return the new user
+                        jsonString = messageFormatter.FormatMessage(undefined, "Successfully Activated.", true, undefined);
+                        res.end(jsonString);
+                    }
+                });
             });
+
+
+            //generateLongLivedToken(user.fb.access_token, function (err, body) {
+            //    if (err) {
+            //        res.end(jsonString);
+            //    }
+            //    else {
+            //        var tok = JSON.parse(body).access_token;
+            //
+            //
+            //        generatePageAccessToken(JSON.parse(body).access_token,user.fb.pageID,function (err, data) {
+            //
+            //            logger.info(data);
+            //
+            //            if (JSON.parse(data) && JSON.parse(data).access_token) {
+            //
+            //                var page_access_token = JSON.parse(data).access_token;
+            //
+            //                subscribePageToApp(JSON.parse(data).access_token, user.fb.pageID, function (err, data) {
+            //
+            //
+            //                    user.update({
+            //                        "$set": {
+            //                            "fb.status": true,
+            //                            "fb.access_token": tok,
+            //                            "updated_at": Date.now()
+            //                        }
+            //                    }, function (err) {
+            //                        if (err) {
+            //                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+            //                            res.end(jsonString);
+            //                        }
+            //                        else {
+            //                            // if successful, return the new user
+            //                            jsonString = messageFormatter.FormatMessage(undefined, "Successfully Activated.", true, undefined);
+            //                            res.end(jsonString);
+            //                        }
+            //                    });
+            //                });
+            //            }else{
+            //
+            //                jsonString = messageFormatter.FormatMessage(err, "Access token generation failed", false, undefined);
+            //                res.end(jsonString);
+            //            }
+            //        });
+            //    }
+            //});
 
 
         }
@@ -1109,6 +1172,150 @@ var generateLongLivedToken = function (token, callBack) {
     }
 
 };
+
+
+
+var generatePageAccessToken = function (token,pageid, callBack) {
+    try {
+        var propertiesObject = {
+
+            fields: "access_token",
+            access_token: token
+
+        };
+        var options = {
+            method: 'GET',
+            uri: config.Services.facebookUrl + pageid,
+            qs: propertiesObject
+        };
+
+        var jsonString;
+        request(options, function (error, response, body) {
+            if (error) {
+                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                callBack(error, undefined);
+            }
+            else {
+
+                if (response.statusCode == 200) {
+                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
+                    logger.error("Get  Long Lived Token :" + jsonString);
+                    callBack(undefined, body);
+                }
+                else {
+                    jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
+                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    callBack(new Error(jsonString), undefined);
+                }
+            }
+        });
+    }
+    catch (ex) {
+        logger.error("Create engagement failed " + id);
+        callBack(ex, undefined);
+    }
+
+};
+
+
+var subscribePageToApp = function (token,pageid, callBack) {
+    try {
+        var propertiesObject = {
+
+            access_token: token
+
+        };
+        var options = {
+            method: 'POST',
+            uri: config.Services.facebookUrl + pageid+"/subscribed_apps",
+            qs: propertiesObject
+            //,
+            //headers: {
+            //    'Content-Type': 'application/json',
+            //    'Accept': 'application/json'
+            //}
+        };
+
+        var jsonString;
+        request(options, function (error, response, body) {
+            if (error) {
+                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                callBack(error, undefined);
+            }
+            else {
+
+                if (response.statusCode == 200) {
+                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
+                    logger.error("Get  Long Lived Token :" + jsonString);
+                    callBack(undefined, body);
+                }
+                else {
+                    jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
+                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    callBack(new Error(jsonString), undefined);
+                }
+            }
+        });
+    }
+    catch (ex) {
+        logger.error("Create engagement failed " + id);
+        callBack(ex, undefined);
+    }
+
+};
+
+
+var unSubscribePageToApp = function (token,pageid, callBack) {
+    try {
+        var propertiesObject = {
+
+            access_token: token
+
+        };
+        var options = {
+            method: 'DELETE',
+            uri: config.Services.facebookUrl + pageid+"/subscribed_apps",
+            qs: propertiesObject
+            //,
+            //headers: {
+            //    'Content-Type': 'application/json',
+            //    'Accept': 'application/json'
+            //}
+        };
+
+        var jsonString;
+        request(options, function (error, response, body) {
+            if (error) {
+                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                callBack(error, undefined);
+            }
+            else {
+
+                if (response.statusCode == 200) {
+                    jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
+                    logger.error("Get  Long Lived Token :" + jsonString);
+                    callBack(undefined, body);
+                }
+                else {
+                    jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
+                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    callBack(new Error(jsonString), undefined);
+                }
+            }
+        });
+    }
+    catch (ex) {
+        logger.error("Create engagement failed " + id);
+        callBack(ex, undefined);
+    }
+
+};
+
+
+
 
 /*function RegisterCronJob(company, tenant, time, id, cb) {
 
