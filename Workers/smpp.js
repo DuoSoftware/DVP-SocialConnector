@@ -29,9 +29,9 @@ session.on('connect', function(){
         addr_ton: 1,
         addr_npi: 1,
     }, function(pdu) {
-        console.log('pdu status', lookupPDUStatusKey(pdu.command_status));
+        logger.info('pdu status', lookupPDUStatusKey(pdu.command_status));
         if (pdu.command_status == 0) {
-            console.log('Successfully bound')
+            logger.info('Successfully bound')
         }
     });
 });
@@ -40,7 +40,7 @@ session.on('connect', function(){
 
 
 session.on('close', function(){
-    console.log('smpp disconnected')
+    logger.info('smpp disconnected')
     if (didConnect) {
         connectSMPP();
     }
@@ -49,8 +49,8 @@ session.on('close', function(){
 
 
 session.on('error', function(error){
-    console.log('smpp error', error)
-    didConnect = true;
+    logger.error('smpp error', error)
+    //didConnect = true;
     //process.exit(1);
 });
 
@@ -64,7 +64,7 @@ function lookupPDUStatusKey(pduCommandStatus) {
 };
 
 function connectSMPP() {
-    console.log('smpp reconnecting');
+   logger.info('smpp reconnecting');
     session.connect();
 }
 
@@ -76,19 +76,19 @@ var sendSMPP = function(from, to, text, cb) {
     to   = to.toString();
 
 
-    console.log("from :" +from);
-    console.log("to :"+to);
-    console.log("text :"+text);
+    logger.info("from :" +from);
+    logger.info("to :"+to);
+    logger.info("text :"+text);
 
     session.submit_sm({
         source_addr:      from,
         destination_addr: to,
         short_message:    text
     }, function(pdu) {
-        console.log('sms pdu status', lookupPDUStatusKey(pdu.command_status));
+        logger.info('sms pdu status', lookupPDUStatusKey(pdu.command_status));
         if (pdu.command_status == 0) {
             // Message successfully sent
-            console.log(pdu.message_id);
+            logger.info(pdu.message_id);
             cb(true, pdu.message_id)
         }else{
 
@@ -101,7 +101,7 @@ var sendSMPP = function(from, to, text, cb) {
 session.on('pdu', function(pdu){
 
     // incoming SMS from SMSC
-    console.log(pdu);
+    logger.info(pdu);
     if (pdu.command == 'deliver_sm') {
 
         // no '+' here
@@ -113,7 +113,7 @@ session.on('pdu', function(pdu){
             text = pdu.short_message.message;
         }
 
-        console.log('SMS ' + from + ' -> ' + to + ': ' + text);
+        logger.info('SMS ' + fromNumber + ' -> ' + toNumber + ': ' + text);
 
         // Reply to SMSC that we received and processed the SMS
         session.deliver_sm_resp({ sequence_number: pdu.sequence_number });

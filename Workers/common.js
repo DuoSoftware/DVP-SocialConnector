@@ -59,7 +59,10 @@ function AddToRequest(company, tenant,session_id, priority, otherInfo, attribute
 
         });
 
+    }else{
+        return cb(false);
     }
+
 
 };
 
@@ -120,6 +123,9 @@ function CreateComment(channel, channeltype, company, tenant, engid, author, eng
 
         });
 
+    }else{
+
+        return cb(false);
     }
 
 };
@@ -172,6 +178,9 @@ function UpdateComment(tenant, company, cid,eid, cb){
 
         });
 
+    }else{
+
+        return cb(false);
     }
 
 };
@@ -226,9 +235,11 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
             catch (excep) {
 
                 return cb(false,{});
-
             }
         });
+    }else{
+
+        return cb(false,{});
     }
 };
 
@@ -254,9 +265,6 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
             "channel": channel,
             "tags": tags,
         };
-
-
-
 
         request({
             method: "POST",
@@ -289,11 +297,11 @@ function CreateTicket(channel,session,profile, company, tenant, type, subjecct, 
 
             }
         });
+    }else{
+
+        return cb(false, "");
     }
 }
-
-
-
 
 function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
@@ -345,6 +353,9 @@ function RegisterCronJob(company, tenant, time, id,mainServer, cb){
 
             }
         });
+    }else{
+
+        return cb(false,{});
     }
 
 }
@@ -398,7 +409,69 @@ function StartStopCronJob(company, tenant, id,action,cb){
 
             }
         });
+    }else{
+
+        return cb(false,{});
     }
+
+}
+
+function GetCallRule(company, tenant, ani, dnis, category,cb){
+
+    //http://ruleservice.app.veery.cloud/DVP/API/1.0.0.0/CallRuleApi/CallRule/Outbound/ANI/234/DNIS/3324323432/Category/SMS
+
+    if((config.Services && config.Services.ruleserviceurl && config.Services.ruleserviceport && config.Services.ruleserviceversion)) {
+
+
+        var callURL = format("http://{0}/DVP/API/{1}/CallRuleApi/CallRule/Outbound/ANI/{2}/DNIS/{3}/Category/{4}", config.Services.cronurl, config.Services.cronversion,ani, dnis,category);
+        if (validator.isIP(config.Services.cronurl))
+            callURL = format("http://{0}:{1}/DVP/API/{2}/CallRuleApi/CallRule/Outbound/ANI/{2}/DNIS/{3}/Category/{4}", config.Services.cronurl, config.Services.cronport, config.Services.cronversion,ani, dnis,category);
+
+        /* var engagementData =  {
+
+         Reference: id,
+         Description: "Direct message twitter",
+         CronePattern: format( "*!/{0} * * * *",time),
+         CallbackURL: mainServer,
+         CallbackData: ""
+
+         };*/
+
+        logger.debug("SMS rule service URL %s", cronURL);
+        request({
+            method: "GET",
+            url: callURL,
+            headers: {
+                authorization: "bearer "+config.Services.accessToken,
+                companyinfo: format("{0}:{1}", tenant, company)
+            }
+        }, function (_error, _response, datax) {
+
+            try {
+
+                if (!_error && _response && _response.statusCode == 200&& _response.body && _response.body.IsSuccess) {
+
+                    return cb(true,_response.body.Result);
+
+                }else{
+
+                    logger.error("There is an error in  StopCronJob for this");
+                    return cb(false,{});
+
+
+                }
+            }
+            catch (excep) {
+
+                return cb(false,{});
+
+            }
+        });
+    }else{
+
+        return cb(false,{});
+    }
+
 
 }
 
@@ -410,5 +483,6 @@ module.exports.CreateTicket = CreateTicket;
 module.exports.RegisterCronJob = RegisterCronJob;
 module.exports.UpdateComment = UpdateComment;
 module.exports.StartStopCronJob = StartStopCronJob;
+module.exports.GetCallRule = GetCallRule;
 
 

@@ -8,7 +8,8 @@
 #EXPOSE 8872
 
 FROM node:5.10.0
-RUN git clone git://github.com/DuoSoftware/DVP-SocialConnector.git /usr/local/src/socialconnector
+ARG VERSION_TAG
+RUN git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-SocialConnector.git /usr/local/src/socialconnector
 RUN cd /usr/local/src/socialconnector;
 WORKDIR /usr/local/src/socialconnector
 RUN npm install
