@@ -1,4 +1,5 @@
 var amqp = require('amqp');
+var util = require('util');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var request = require('request');
 var format = require("stringformat");
@@ -13,6 +14,7 @@ var juice = require('juice');
 var Template = require('../Model/Template').Template;
 var uuid = require('node-uuid');
 var SocialConnector = require('dvp-mongomodels/model/SocialConnector').SocialConnector;
+var FormData = require('form-data');
 
 //var queueHost = format('amqp://{0}:{1}@{2}:{3}',config.RabbitMQ.user,config.RabbitMQ.password,config.RabbitMQ.ip,config.RabbitMQ.port);
 var queueName = config.Host.facebookQueueName;
@@ -72,6 +74,11 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                 access_token: user.fb.access_token,
                 message: msg
             };
+
+
+
+            console.log(propertiesObject);
+
             var options = {
                 method: 'post',
                 uri: config.Services.facebookUrl + objectid + '/comments',
@@ -81,6 +88,26 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                     'Accept': 'application/json'
                 }
             };
+
+            if(data.attachments && Array.isArray(data.attachments)&& data.attachments.length > 0){
+
+                var fileServiceHost = config.Services.fileServiceHost;
+                var fileServicePort = config.Services.fileServicePort;
+                var fileServiceVersion = config.Services.fileServiceVersion;
+
+                if(fileServiceHost && fileServicePort && fileServiceVersion) {
+                    var httpUrl = util.format('http://%s/DVP/API/%s/InternalFileService/File/Download/%d/%d/%s/%s', fileServiceHost, fileServiceVersion, company, tenant, data.attachments[0], data.attachments[0]);
+
+                    if (validator.isIP(fileServiceHost)) {
+                        httpUrl = util.format('http://%s:%s/DVP/API/%s/InternalFileService/File/Download/%d/%d/%s/%s', fileServiceHost, fileServicePort, fileServiceVersion, company, tenant, data.attachments[0], data.attachments[0]);
+                    }
+
+                    //var form = new FormData();
+                    //form.append('source', request(httpUrl));
+                    //
+                    //options.formData = form;
+                }
+            }
 
             request(options, function (error, response, body) {
                 if (error) {
@@ -131,6 +158,11 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                     console.log("MakeCommentsToWallPost..... > "+ JSON.stringify(body));
                 }
             });
+
+
+            //var req =
+
+
         }
         else {
             logger.error("Fail To Find Connector. >  " + JSON.stringify(data),new Error("Fail To Find Connector"));

@@ -11,6 +11,7 @@
     "dvp-common": "^0.8.4",
     "dvp-mongomodels": "^4.4.4",
     "fbgraph": "^1.2.0",
+    "form-data": "^2.2.0",
     "format": "^0.2.2",
     "fs": "0.0.2",
     "juice": "^2.0.0",
