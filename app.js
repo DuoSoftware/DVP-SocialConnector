@@ -39,9 +39,9 @@ var server = restify.createServer({
 
 
 var https_options = {
-    ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
-    key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
+    //ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    //key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
+    //certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')
 };
 
 var https_server = restify.createServer(https_options);
@@ -81,8 +81,11 @@ var setup_server = function (server) {
         console.log('Facebook request body:');
         console.log(JSON.stringify(req.body));
         // Process the Facebook updates here
+        //res.send(200);
         fb.RealTimeUpdates(req.body);
-        res.send(200);
+
+        res.end();
+
     });
 
    /* server.post('/webhook', function (req, res) {
