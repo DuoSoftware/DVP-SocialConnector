@@ -1159,7 +1159,7 @@ var generateLongLivedToken = function (token, callBack) {
                     callBack(undefined, body);
                 }
                 else {
-                    jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
+                    jsonString = messageFormatter.FormatMessage(response, "Fail To Post.", false, undefined);
                     logger.error("Fail to get  Long Lived Token [1163] : " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
