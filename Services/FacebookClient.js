@@ -1144,6 +1144,7 @@ var generateLongLivedToken = function (token, callBack) {
             }
         };
 
+        console.log(options);
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
