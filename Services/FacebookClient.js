@@ -1147,8 +1147,8 @@ var generateLongLivedToken = function (token, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1151] : " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1160,7 +1160,7 @@ var generateLongLivedToken = function (token, callBack) {
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    logger.error("Fail to get  Long Lived Token [1163] : " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
@@ -1192,8 +1192,8 @@ var generatePageAccessToken = function (token,pageid, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1196]: " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1205,7 +1205,7 @@ var generatePageAccessToken = function (token,pageid, callBack) {
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    logger.error("Fail to get  Long Lived Token [1208]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
@@ -1240,8 +1240,8 @@ var subscribePageToApp = function (token,pageid, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1244]: " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1253,7 +1253,7 @@ var subscribePageToApp = function (token,pageid, callBack) {
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    logger.error("Fail to get  Long Lived Token [1256]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
@@ -1288,8 +1288,8 @@ var unSubscribePageToApp = function (token,pageid, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1292]: " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1301,7 +1301,7 @@ var unSubscribePageToApp = function (token,pageid, callBack) {
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    logger.error("Fail to get  Long Lived Token [1304]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
