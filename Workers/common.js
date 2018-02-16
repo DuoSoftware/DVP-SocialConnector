@@ -3,6 +3,7 @@ var format = require("stringformat");
 var validator = require('validator');
 var config = require('config');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
+var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 
 function AddToRequest(company, tenant,session_id, priority, otherInfo, attributes, cb){
 
@@ -225,8 +226,8 @@ function CreateEngagement(channel, company, tenant, from, to, direction, session
                     return cb(true,_response.body.Result);
 
                 }else{
-
-                    logger.error("There is an error in  create engagements for this session "+ session);
+                    var jsonString = messageFormatter.FormatMessage(_response, "There is an error in  create engagements for this session "+ session, false, undefined);
+                    logger.error(jsonString);
                     return cb(false,{});
 
 
