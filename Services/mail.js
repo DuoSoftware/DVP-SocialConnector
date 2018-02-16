@@ -55,6 +55,7 @@ function CreateMailAccount(req, res) {
         company: company,
         tenant: tenant,
         name: req.body.name,
+        fromOverwrite: req.body.fromOverwrite,
         ticket_type: req.body.ticket_type,
         ticket_tags: req.body.ticket_tags,
         ticket_priority: req.body.ticket_priority,
