@@ -351,12 +351,20 @@ module.exports.PostToWall = function (req, res) {
         // if the user is found, then log them in
         if (user) {
             var propertiesObject = {
-                access_token: user.fb.access_token,
-                message: req.body.message
+                access_token: user.fb.access_token
             };
+            if(req.body.imageUrl){
+                propertiesObject.caption = req.body.message;
+                propertiesObject.url = req.body.imageUrl;
+            }
+            else {
+                propertiesObject.message = req.body.message
+            }
+
+            //https://developers.facebook.com/docs/graph-api/photo-uploads
             var options = {
                 method: 'POST',
-                uri: config.Services.facebookUrl + 'me/feed',
+                uri: config.Services.facebookUrl + (req.body.imageUrl?'me/photos': 'me/feed'),
                 qs: propertiesObject,
                 headers: {
                     'Content-Type': 'application/json',
@@ -451,7 +459,7 @@ module.exports.MakeCommentsToWallPost = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    SocialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -467,6 +475,9 @@ module.exports.MakeCommentsToWallPost = function (req, res) {
                 access_token: user.fb.access_token,
                 message: req.body.message
             };
+            if(req.body.imageUrl){
+                propertiesObject.attachment_url =req.body.imageUrl;
+            }
             var options = {
                 method: 'post',
                 uri: config.Services.facebookUrl + req.params.objectid + '/comments',

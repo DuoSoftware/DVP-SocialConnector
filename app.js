@@ -34,14 +34,14 @@ restify.CORS.ALLOW_HEADERS.push('authorization');
 
 // Instantiate our two servers
 var server = restify.createServer({
-    name: "DVP Engagement Service"
+    name: "DVP Facebook Sender Service"
 });
 
-
+/*
 var https_options = {
-    /*ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
+    /!*ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
     key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')*/
+    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')*!/
 };
 
 var https_server = restify.createServer(https_options);
@@ -57,85 +57,10 @@ var setup_server = function (server) {
     server.use(restify.CORS());
     server.use(restify.fullResponse());
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    server.get('/', function(req, res) {
-        console.log(req);
-        res.send('It works!');
-    });
-
-    server.get('/facebook', function(req, res) {
-        if (
-            req.params.hub.mode == 'subscribe' &&
-            req.params.hub.verify_token == 'token'
-        ) {
-            res.setHeader('content-type', 'text/plain');
-            res.send(req.params.hub.challenge);
-            /*res.send(req.params.hub.challenge.toString());*/
-        } else {
-            res.send(400);
-        }
-    });
-
-    server.post('/facebook', function(req, res) {
-        console.log('Facebook request body:');
-        console.log(JSON.stringify(req.body));
-        // Process the Facebook updates here
-        //res.send(200);
-        fb.RealTimeUpdates(req.body);
-
-        res.end();
-
-    });
-
-   /* server.post('/webhook', function (req, res) {
-        var data = req.body;
-
-        // Make sure this is a page subscription
-        if (data.object === 'page') {
-
-            // Iterate over each entry - there may be multiple if batched
-            data.entry.forEach(function(entry) {
-                var pageID = entry.id;
-                var timeOfEvent = entry.time;
-
-                // Iterate over each messaging event
-                entry.messaging.forEach(function(event) {
-                    if (event.message) {
-                        receivedMessage(event);
-                    } else {
-                        console.log("Webhook received unknown event: ", event);
-                    }
-                });
-            });
-
-            // Assume all went well.
-            //
-            // You must send back a 200, within 20 seconds, to let us know
-            // you've successfully received the callback. Otherwise, the request
-            // will time out and we will keep trying to resend.
-            res.sendStatus(200);
-        }
-    });
-
-    function receivedMessage(event) {
-        // Putting a stub for now, we'll expand it in the following steps
-        console.log("Message data: ", event.message);
-    }*/
-
-    server.post('/instagram', function(req, res) {
-        console.log('Instagram request body:');
-        console.log(req.body);
-        // Process the Instagram updates here
-        res.send(200);
-    });
-
-
-
 };
 
 // Now, setup both servers in one step
-setup_server(https_server);
+setup_server(https_server);*/
 
 server.pre(restify.pre.userAgentConnection());
 server.use(restify.bodyParser({mapParams: false}));
@@ -308,9 +233,11 @@ server.post('DVP/API/:version/Social/fb/:pageId/subscribe/:verify_token/callback
 }), fb.SubscribeToPage);
 
 
+/*
 https_server.listen(443, function () {
     console.log('%s listening at %s', https_server.name, https_server.url);
 });
+*/
 
 
 
