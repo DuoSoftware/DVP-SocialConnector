@@ -141,7 +141,7 @@ server.put('DVP/API/:version/Social/Twitter/:id', authorization({
     action: "write"
 }), twitterService.UpdateTwitterAccount);
 
-
+/*
 server.post('DVP/API/:version/Social/Email', authorization({
     resource: "social",
     action: "write"
@@ -161,7 +161,7 @@ server.del('DVP/API/:version/Social/Email/:id', authorization({
 server.put('DVP/API/:version/Social/Email/:id', authorization({
     resource: "social",
     action: "write"
-}), emailService.UpdateEmailAccount);
+}), emailService.UpdateEmailAccount);*/
 server.post('DVP/API/:version/Social/SMS', authorization({resource: "social", action: "write"}), smsService.SendSMS);
 
 
