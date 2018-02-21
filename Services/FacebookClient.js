@@ -73,6 +73,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
         else {
             generateLongLivedToken(profile.fb.access_token, function (err, body) {
                 if (err) {
+                    jsonString = messageFormatter.FormatMessage(err, "Fail to Get Long Lived Token.", false, user);
                     res.end(jsonString);
                 }
                 else {
