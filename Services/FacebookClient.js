@@ -14,12 +14,34 @@ var CreateTicket = require('../Workers/common').CreateTicket;
 var AddToRequest = require('../Workers/common').AddToRequest;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateEngagement = require('../Workers/common').CreateEngagement;
+var redisHandler = require('../Workers/RedisHandler');
 /*var CreateTicket = require('../Workers/common').CreateTicket;*/
 var RegisterCronJob = require('../Workers/common').RegisterCronJob;
 var validator = require('validator');
 var format = require("stringformat");
 /*var authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkdW9vd25lciIsImp0aSI6IjI1NmZhMjNiLTQ3YTAtNDU0NS05ZGYxLTAxMWIwZDdjYWViOSIsInN1YiI6IkFjY2VzcyBjbGllbnQiLCJleHAiOjIwNjg1ODA5MjIsInRlbmFudCI6MSwiY29tcGFueSI6MTAzLCJhdWQiOiJteWFwcCIsImNvbnRleHQiOnt9LCJzY29wZSI6W3sicmVzb3VyY2UiOiJ0aWNrZXQiLCJhY3Rpb25zIjpbInJlYWQiLCJ3cml0ZSIsImRlbGV0ZSJdfSx7InJlc291cmNlIjoic2xhIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX0seyJyZXNvdXJjZSI6InRyaWdnZXJzIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX1dLCJpYXQiOjE0Njc5NzYxMjJ9.05YMBXY5PgTJZpY6qJA0YVgeXtND0aMiCU85fvOvDJc";*/
 var authorization;
+
+var addOwnerToList = function(ownerId,tenantId,companyId){
+    return ;  // diasble funatinality 
+    redisHandler.AddOwnerToList(tenantId,companyId,ownerId).then(function(reply){
+        jsonString = messageFormatter.FormatMessage(undefined, "addOwnerToList", true, reply);
+            logger.info(jsonString);
+    }).catch(function(err){
+        logger.err(err);
+    })
+}
+
+var removeOwnerFromList = function(ownerId,tenantId,companyId){
+    return ;  // diasble funatinality 
+    redisHandler.RemoveOwnerFromList(tenantId,companyId,ownerId).then(function(reply){
+        jsonString = messageFormatter.FormatMessage(undefined, "RemoveOwnerFromList", true, reply);
+            logger.info(jsonString);
+        redisHandler.GetOwnersList(tenantId,companyId);
+    }).catch(function(err){
+        logger.err(err);
+    })
+}
 
 module.exports.GetFacebookAccounts = function (req, res) {
     logger.info("DVP-SocialConnector.GetFacebookAccounts Internal method ");
@@ -117,7 +139,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
                                         res.end(jsonString);
                                     }
                                     else {
-
+                                        addOwnerToList(profile.id,tenant,company);
                                         jsonString = messageFormatter.FormatMessage(undefined, "Facebook Saved Successfully", true, obj);
                                         res.end(jsonString);
                                     }
@@ -183,6 +205,7 @@ module.exports.DeleteFacebookAccount = function (req, res) {
                         res.end(jsonString);
                     }
                     else {
+                        removeOwnerFromList(user.fb.pageID,tenant,company);
                         // if successful, return the new user
                         jsonString = messageFormatter.FormatMessage(undefined, "Successfully Removed.", true, undefined);
                         res.end(jsonString);
@@ -232,6 +255,7 @@ module.exports.ActiveteFacebookAccount = function (req, res) {
                         res.end(jsonString);
                     }
                     else {
+                        addOwnerToList(user.fb.pageID,tenant,company);
                         // if successful, return the new user
                         jsonString = messageFormatter.FormatMessage(undefined, "Successfully Activated.", true, undefined);
                         res.end(jsonString);
