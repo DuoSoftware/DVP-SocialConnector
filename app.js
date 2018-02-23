@@ -7,8 +7,6 @@ var mongoose = require('mongoose');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var twitterService = require('./Services/twitter');
-var emailService = require('./Services/mail');
-var smsService = require('./Services/sms');
 var request = require("request");
 var format = require("stringformat");
 var validator = require('validator');
@@ -21,12 +19,6 @@ var serverType = config.Host.ServerType;
 var callbackOption = config.Host.CallbackOption;
 var requestType = config.Host.RequestType;
 var serverID = config.Host.ServerID;
-var token = config.Services.accessToken;
-
-
-var smsAsync = require('./Services/sms-amqp');
-var twitterAsync = require('./Services/twitter-amqp');
-var fbAsync = require ('./Services/FacebookClient-amqp');
 
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
@@ -36,31 +28,6 @@ restify.CORS.ALLOW_HEADERS.push('authorization');
 var server = restify.createServer({
     name: "DVP Facebook Sender Service"
 });
-
-/*
-var https_options = {
-    /!*ca: fs.readFileSync('/etc/ssl/fb/COMODORSADomainValidationSecureServerCA.crt'),
-    key: fs.readFileSync('/etc/ssl/fb/SSL1.txt'),
-    certificate: fs.readFileSync('/etc/ssl/fb/STAR_duoworld_com.crt')*!/
-};
-
-var https_server = restify.createServer(https_options);
-
-
-// Put any routing, response, etc. logic here. This allows us to define these functions
-// only once, and it will be re-used on both the HTTP and HTTPs servers
-var setup_server = function (server) {
-
-    server.pre(restify.pre.userAgentConnection());
-    server.use(restify.bodyParser({mapParams: false}));
-    server.use(restify.queryParser());
-    server.use(restify.CORS());
-    server.use(restify.fullResponse());
-
-};
-
-// Now, setup both servers in one step
-setup_server(https_server);*/
 
 server.pre(restify.pre.userAgentConnection());
 server.use(restify.bodyParser({mapParams: false}));
@@ -140,30 +107,6 @@ server.put('DVP/API/:version/Social/Twitter/:id', authorization({
     resource: "social",
     action: "write"
 }), twitterService.UpdateTwitterAccount);
-
-/*
-server.post('DVP/API/:version/Social/Email', authorization({
-    resource: "social",
-    action: "write"
-}), emailService.CreateMailAccount);
-server.get('DVP/API/:version/Social/Email', authorization({
-    resource: "social",
-    action: "read"
-}), emailService.GetEmailAccount);
-server.get('DVP/API/:version/Social/Emails', authorization({
-    resource: "social",
-    action: "read"
-}), emailService.GetEmailAccounts);
-server.del('DVP/API/:version/Social/Email/:id', authorization({
-    resource: "social",
-    action: "delete"
-}), emailService.DeleteEmailAccount);
-server.put('DVP/API/:version/Social/Email/:id', authorization({
-    resource: "social",
-    action: "write"
-}), emailService.UpdateEmailAccount);*/
-server.post('DVP/API/:version/Social/SMS', authorization({resource: "social", action: "write"}), smsService.SendSMS);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
