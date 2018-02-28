@@ -111,7 +111,20 @@ module.exports = {
 
 		"facebookUrl" : "SYS_FACEBOOK_URL"
 
-    }
+    },
+	
+  "SocialConnector":
+  {
+    //"fb_client_id":"825442624259571",
+    //"fb_client_secret":"85eab7232db0c38abd7d04baa358382f",
+    //"owner_id":"124278164680278,124278164680845"
+
+
+    "fb_client_id":"SYS_FBCLIENT_ID",
+    "fb_client_secret":"SYS_FBCLIENT_KEY",
+    "owner_id":"SYS_FBOWNER_ID"
+
+  }
 };
 
 //NODE_CONFIG_DIR
