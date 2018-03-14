@@ -20,7 +20,7 @@ var FormData = require('form-data');
 var queueName = config.Host.facebookQueueName;
 
 var rabbitmqIP = [];
-if(config.RabbitMQ.ip) {
+if (config.RabbitMQ.ip) {
     rabbitmqIP = config.RabbitMQ.ip.split(",");
 }
 
@@ -31,7 +31,7 @@ var queueConnection = amqp.createConnection({
     password: config.RabbitMQ.password,
     vhost: config.RabbitMQ.vhost,
     noDelay: true,
-    heartbeat:10
+    heartbeat: 10
 }, {
     reconnect: true,
     reconnectBackoffStrategy: 'linear',
@@ -40,7 +40,7 @@ var queueConnection = amqp.createConnection({
 });
 
 queueConnection.on('ready', function () {
-    queueConnection.queue(queueName, {durable: true, autoDelete: false},function (q) {
+    queueConnection.queue(queueName, {durable: true, autoDelete: false}, function (q) {
         q.bind('#');
         q.subscribe({
             ack: true,
@@ -49,24 +49,24 @@ queueConnection.on('ready', function () {
 
             //message = JSON.parse(message.data.toString());
             console.log(message);
-            if (!message || !message.to || !message.from || !message.reply_session ||  !message.body || !message.company || !message.tenant) {
+            if (!message || !message.to || !message.from || !message.reply_session || !message.body || !message.company || !message.tenant) {
                 console.log('FB Client AMQP-Invalid message, skipping');
                 return ack.acknowledge();
             }
             ///////////////////////////create body/////////////////////////////////////////////////
 
-            MakeCommentsToWallPost(message.tenant,message.company,message.from,message.reply_session,message.body,message,ack)
+            MakeCommentsToWallPost(message.tenant, message.company, message.from, message.reply_session, message.body, message, ack)
         });
     });
 });
 
-function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack) {
+function MakeCommentsToWallPost(tenant, company, connectorId, objectid, msg, data, ack) {
 
     console.log("MakeCommentsToWallPost. RMQ Data >  " + JSON.stringify(data));
     SocialConnector.findOne({'_id': connectorId, company: company, tenant: tenant}, function (err, user) {
 
         if (err) {
-            logger.error("Fail To Find Social Connector.",err);
+            logger.error("Fail To Find Social Connector.", err);
             ack.reject(true);
         }
         if (user) {
@@ -74,7 +74,9 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                 access_token: user.fb.access_token,
                 message: msg
             };
-
+            if (data.imageUrl) {
+                propertiesObject.attachment_url = req.body.imageUrl;
+            }
 
 
             console.log(propertiesObject);
@@ -89,13 +91,13 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                 }
             };
 
-            if(data.attachments && Array.isArray(data.attachments)&& data.attachments.length > 0){
+            if (data.attachments && Array.isArray(data.attachments) && data.attachments.length > 0) {
 
                 var fileServiceHost = config.Services.fileServiceHost;
                 var fileServicePort = config.Services.fileServicePort;
                 var fileServiceVersion = config.Services.fileServiceVersion;
 
-                if(fileServiceHost && fileServicePort && fileServiceVersion) {
+                if (fileServiceHost && fileServicePort && fileServiceVersion) {
                     var httpUrl = util.format('http://%s/DVP/API/%s/InternalFileService/File/Download/%d/%d/%s/%s', fileServiceHost, fileServiceVersion, company, tenant, data.attachments[0], data.attachments[0]);
 
                     if (validator.isIP(fileServiceHost)) {
@@ -111,7 +113,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
 
             request(options, function (error, response, body) {
                 if (error) {
-                    logger.error("Fail To Make Comment.",err);
+                    logger.error("Fail To Make Comment.", err);
                     ack.acknowledge();
                 }
                 else {
@@ -129,7 +131,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                                  }
                                  })*/
 
-                                UpdateComment(tenant, company, data.comment,engagement._id, function (done) {
+                                UpdateComment(tenant, company, data.comment, engagement._id, function (done) {
                                     if (done) {
                                         logger.info("Update Comment Completed ");
 
@@ -151,11 +153,11 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
                         ack.acknowledge();
                     }
                     else {
-                        logger.error("Fail To Make Comment.",new Error("Fail To Make Comment"));
+                        logger.error("Fail To Make Comment.", new Error("Fail To Make Comment"));
                         ack.acknowledge();
                     }
 
-                    console.log("MakeCommentsToWallPost..... > "+ JSON.stringify(body));
+                    console.log("MakeCommentsToWallPost..... > " + JSON.stringify(body));
                 }
             });
 
@@ -165,7 +167,7 @@ function MakeCommentsToWallPost(tenant,company,connectorId,objectid,msg,data,ack
 
         }
         else {
-            logger.error("Fail To Find Connector. >  " + JSON.stringify(data),new Error("Fail To Find Connector"));
+            logger.error("Fail To Find Connector. >  " + JSON.stringify(data), new Error("Fail To Find Connector"));
             ack.acknowledge();
         }
     });

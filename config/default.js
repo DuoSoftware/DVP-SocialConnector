@@ -176,8 +176,8 @@ module.exports = {
     //"owner_id":"124278164680278,124278164680845"
 
 
-    "fb_client_id":"1339841416135058",
-    "fb_client_secret":"21391d2aef1b811b53c11be90094bab6",
+    "fb_client_id":"1653017581444883",
+    "fb_client_secret":"f12c3716d48b0f0c6ea6b73e46e0a8bf",
     "owner_id":"891072687711352"
 
   }

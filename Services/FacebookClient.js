@@ -14,12 +14,34 @@ var CreateTicket = require('../Workers/common').CreateTicket;
 var AddToRequest = require('../Workers/common').AddToRequest;
 var CreateComment = require('../Workers/common').CreateComment;
 var CreateEngagement = require('../Workers/common').CreateEngagement;
+var redisHandler = require('../Workers/RedisHandler');
 /*var CreateTicket = require('../Workers/common').CreateTicket;*/
 var RegisterCronJob = require('../Workers/common').RegisterCronJob;
 var validator = require('validator');
 var format = require("stringformat");
 /*var authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkdW9vd25lciIsImp0aSI6IjI1NmZhMjNiLTQ3YTAtNDU0NS05ZGYxLTAxMWIwZDdjYWViOSIsInN1YiI6IkFjY2VzcyBjbGllbnQiLCJleHAiOjIwNjg1ODA5MjIsInRlbmFudCI6MSwiY29tcGFueSI6MTAzLCJhdWQiOiJteWFwcCIsImNvbnRleHQiOnt9LCJzY29wZSI6W3sicmVzb3VyY2UiOiJ0aWNrZXQiLCJhY3Rpb25zIjpbInJlYWQiLCJ3cml0ZSIsImRlbGV0ZSJdfSx7InJlc291cmNlIjoic2xhIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX0seyJyZXNvdXJjZSI6InRyaWdnZXJzIiwiYWN0aW9ucyI6WyJyZWFkIiwid3JpdGUiLCJkZWxldGUiXX1dLCJpYXQiOjE0Njc5NzYxMjJ9.05YMBXY5PgTJZpY6qJA0YVgeXtND0aMiCU85fvOvDJc";*/
 var authorization;
+
+var addOwnerToList = function(ownerId,tenantId,companyId){
+    return ;  // diasble funatinality 
+    redisHandler.AddOwnerToList(tenantId,companyId,ownerId).then(function(reply){
+        jsonString = messageFormatter.FormatMessage(undefined, "addOwnerToList", true, reply);
+            logger.info(jsonString);
+    }).catch(function(err){
+        logger.err(err);
+    })
+}
+
+var removeOwnerFromList = function(ownerId,tenantId,companyId){
+    return ;  // diasble funatinality 
+    redisHandler.RemoveOwnerFromList(tenantId,companyId,ownerId).then(function(reply){
+        jsonString = messageFormatter.FormatMessage(undefined, "RemoveOwnerFromList", true, reply);
+            logger.info(jsonString);
+        redisHandler.GetOwnersList(tenantId,companyId);
+    }).catch(function(err){
+        logger.err(err);
+    })
+}
 
 module.exports.GetFacebookAccounts = function (req, res) {
     logger.info("DVP-SocialConnector.GetFacebookAccounts Internal method ");
@@ -73,6 +95,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
         else {
             generateLongLivedToken(profile.fb.access_token, function (err, body) {
                 if (err) {
+                    jsonString = messageFormatter.FormatMessage(err, "Fail to Get Long Lived Token.", false, user);
                     res.end(jsonString);
                 }
                 else {
@@ -116,7 +139,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
                                         res.end(jsonString);
                                     }
                                     else {
-
+                                        addOwnerToList(profile.id,tenant,company);
                                         jsonString = messageFormatter.FormatMessage(undefined, "Facebook Saved Successfully", true, obj);
                                         res.end(jsonString);
                                     }
@@ -182,6 +205,7 @@ module.exports.DeleteFacebookAccount = function (req, res) {
                         res.end(jsonString);
                     }
                     else {
+                        removeOwnerFromList(user.fb.pageID,tenant,company);
                         // if successful, return the new user
                         jsonString = messageFormatter.FormatMessage(undefined, "Successfully Removed.", true, undefined);
                         res.end(jsonString);
@@ -231,6 +255,7 @@ module.exports.ActiveteFacebookAccount = function (req, res) {
                         res.end(jsonString);
                     }
                     else {
+                        addOwnerToList(user.fb.pageID,tenant,company);
                         // if successful, return the new user
                         jsonString = messageFormatter.FormatMessage(undefined, "Successfully Activated.", true, undefined);
                         res.end(jsonString);
@@ -351,12 +376,20 @@ module.exports.PostToWall = function (req, res) {
         // if the user is found, then log them in
         if (user) {
             var propertiesObject = {
-                access_token: user.fb.access_token,
-                message: req.body.message
+                access_token: user.fb.access_token
             };
+            if(req.body.imageUrl){
+                propertiesObject.caption = req.body.message;
+                propertiesObject.url = req.body.imageUrl;
+            }
+            else {
+                propertiesObject.message = req.body.message
+            }
+
+            //https://developers.facebook.com/docs/graph-api/photo-uploads
             var options = {
                 method: 'POST',
-                uri: config.Services.facebookUrl + 'me/feed',
+                uri: config.Services.facebookUrl + (req.body.imageUrl?'me/photos': 'me/feed'),
                 qs: propertiesObject,
                 headers: {
                     'Content-Type': 'application/json',
@@ -451,7 +484,7 @@ module.exports.MakeCommentsToWallPost = function (req, res) {
 
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
-    SocialConnector.findOne({'_id': profile.id, company: company, tenant: tenant}, function (err, user) {
+    SocialConnector.findOne({'_id': req.params.id, company: company, tenant: tenant}, function (err, user) {
 
         var jsonString;
         // if there is an error, stop everything and return that
@@ -467,6 +500,9 @@ module.exports.MakeCommentsToWallPost = function (req, res) {
                 access_token: user.fb.access_token,
                 message: req.body.message
             };
+            if(req.body.imageUrl){
+                propertiesObject.attachment_url =req.body.imageUrl;
+            }
             var options = {
                 method: 'post',
                 uri: config.Services.facebookUrl + req.params.objectid + '/comments',
@@ -1147,8 +1183,8 @@ var generateLongLivedToken = function (token, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1151] : " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1159,8 +1195,8 @@ var generateLongLivedToken = function (token, callBack) {
                     callBack(undefined, body);
                 }
                 else {
-                    jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    jsonString = messageFormatter.FormatMessage(response, "Fail To Post.", false, undefined);
+                    logger.error("Fail to get  Long Lived Token [1163] : " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
@@ -1192,8 +1228,8 @@ var generatePageAccessToken = function (token,pageid, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1196]: " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1205,7 +1241,7 @@ var generatePageAccessToken = function (token,pageid, callBack) {
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    logger.error("Fail to get  Long Lived Token [1208]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
@@ -1240,8 +1276,8 @@ var subscribePageToApp = function (token,pageid, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1244]: " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1253,7 +1289,7 @@ var subscribePageToApp = function (token,pageid, callBack) {
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    logger.error("Fail to get  Long Lived Token [1256]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
@@ -1288,8 +1324,8 @@ var unSubscribePageToApp = function (token,pageid, callBack) {
         var jsonString;
         request(options, function (error, response, body) {
             if (error) {
-                jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
-                logger.error("Fail to get  Long Lived Token : " + jsonString);
+                jsonString = messageFormatter.FormatMessage(error, "EXCEPTION", false, undefined);
+                logger.error("Fail to get  Long Lived Token [1292]: " + jsonString);
                 callBack(error, undefined);
             }
             else {
@@ -1301,7 +1337,7 @@ var unSubscribePageToApp = function (token,pageid, callBack) {
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token : " + jsonString);
+                    logger.error("Fail to get  Long Lived Token [1304]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
