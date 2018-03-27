@@ -181,7 +181,7 @@ module.exports = {
     //"owner_id":"891072687711352"
 
     "fb_client_id":"1653017581444883",
-   "fb_client_secret":"5af6508ad08ef57b13848a0836bfca40",
+   "fb_client_secret":"f12c3716d48b0f0c6ea6b73e46e0a8bf",
     "owner_id":"891072687711352"
   }
 
