@@ -3,7 +3,7 @@ var fs = require('fs');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var config = require('config');
 var jwt = require('restify-jwt');
-var mongoose = require('mongoose');
+var mongomodels = require('dvp-mongomodels');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var twitterService = require('./Services/twitter');
@@ -108,6 +108,39 @@ server.put('DVP/API/:version/Social/Twitter/:id', authorization({
     action: "write"
 }), twitterService.UpdateTwitterAccount);
 
+
+server.put('DVP/API/:version/Social/Twitter/:id/subscription', authorization({
+    resource: "social",
+    action: "write"
+}), twitterService.SubscribeTwitterAccount);
+server.del('DVP/API/:version/Social/Twitter/:id/subscription', authorization({
+    resource: "social",
+    action: "delete"
+}), twitterService.UnSubscribeTwitterAccount);
+
+
+
+server.put('DVP/API/:version/Social/TwitterWebHook', authorization({
+    resource: "social",
+    action: "write"
+}), twitterService.CreateTwitterWebhook);
+
+server.del('DVP/API/:version/Social/TwitterWebHook/:id', authorization({
+    resource: "social",
+    action: "delete"
+}), twitterService.DeleteTwitterWebhook);
+
+server.get('DVP/API/:version/Social/TwitterWebHook', authorization({
+    resource: "social",
+    action: "read"
+}), twitterService.GetTwitterWebhook);
+
+server.del('DVP/API/:version/Social/TwitterWebHookNative', authorization({
+    resource: "social",
+    action: "delete"
+}), twitterService.UnSubscribeTwitterHook);
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -191,57 +224,57 @@ server.listen(port, function () {
 });
 
 
-var mongoip = config.Mongo.ip;
-var mongoport = config.Mongo.port;
-var mongodb = config.Mongo.dbname;
-var mongouser = config.Mongo.user;
-var mongopass = config.Mongo.password;
-var mongoreplicaset=config.Mongo.replicaset;
-
-
-var mongoose = require('mongoose');
-var connectionstring = '';
-mongoip = mongoip.split(',');
-if(util.isArray(mongoip)){
- if(mongoip.length > 1){    
-    mongoip.forEach(function(item){
-        connectionstring += util.format('%s:%d,',item,mongoport)
-    });
-
-    connectionstring = connectionstring.substring(0, connectionstring.length - 1);
-    connectionstring = util.format('mongodb://%s:%s@%s/%s',mongouser,mongopass,connectionstring,mongodb);
-
-    if(mongoreplicaset){
-        connectionstring = util.format('%s?replicaSet=%s',connectionstring,mongoreplicaset) ;
-        logger.info("connectionstring ...   "+connectionstring);
-    }
- }
-    else
-    {
-        connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip[0],mongoport,mongodb);
-    }
-}else {
-
-    connectionstring = util.format('mongodb://%s:%s@%s:%d/%s', mongouser, mongopass, mongoip, mongoport, mongodb);
-
-}
-logger.info("connectionstring ...   "+connectionstring);
-
-mongoose.connection.on('error', function (err) {
-    logger.error(err);
-});
-
-mongoose.connection.on('disconnected', function () {
-    logger.error('Could not connect to database');
-});
-
-mongoose.connection.once('open', function () {
-    logger.info("Connected to db");
-});
-
-
-mongoose.connect(connectionstring);
-
+// var mongoip = config.Mongo.ip;
+// var mongoport = config.Mongo.port;
+// var mongodb = config.Mongo.dbname;
+// var mongouser = config.Mongo.user;
+// var mongopass = config.Mongo.password;
+// var mongoreplicaset=config.Mongo.replicaset;
+//
+//
+// var mongoose = require('mongoose');
+// var connectionstring = '';
+// mongoip = mongoip.split(',');
+// if(util.isArray(mongoip)){
+//  if(mongoip.length > 1){
+//     mongoip.forEach(function(item){
+//         connectionstring += util.format('%s:%d,',item,mongoport)
+//     });
+//
+//     connectionstring = connectionstring.substring(0, connectionstring.length - 1);
+//     connectionstring = util.format('mongodb://%s:%s@%s/%s',mongouser,mongopass,connectionstring,mongodb);
+//
+//     if(mongoreplicaset){
+//         connectionstring = util.format('%s?replicaSet=%s',connectionstring,mongoreplicaset) ;
+//         logger.info("connectionstring ...   "+connectionstring);
+//     }
+//  }
+//     else
+//     {
+//         connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip[0],mongoport,mongodb);
+//     }
+// }else {
+//
+//     connectionstring = util.format('mongodb://%s:%s@%s:%d/%s', mongouser, mongopass, mongoip, mongoport, mongodb);
+//
+// }
+// logger.info("connectionstring ...   "+connectionstring);
+//
+// mongoose.connection.on('error', function (err) {
+//     logger.error(err);
+// });
+//
+// mongoose.connection.on('disconnected', function () {
+//     logger.error('Could not connect to database');
+// });
+//
+// mongoose.connection.once('open', function () {
+//     logger.info("Connected to db");
+// });
+//
+//
+// mongoose.connect(connectionstring);
+//
 
 /*-----------------------------Facebook------------------------------------------*/
 

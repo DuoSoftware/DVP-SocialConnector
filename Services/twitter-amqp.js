@@ -10,7 +10,7 @@ var config = require('config');
 var validator = require('validator');
 var dust = require('dustjs-linkedin');
 var juice = require('juice');
-var Template = require('../Model/Template').Template;
+var Template = require('dvp-common/Model/Template').Template;
 var uuid = require('node-uuid');
 var TwitterClient = require('twitter');
 var Twitter = require('dvp-mongomodels/model/Twitter').Twitter;
@@ -21,8 +21,10 @@ var queueName = config.Host.twitterQueueName;
 
 
 
-var _twitterConsumerKey = "dUTFwOCHWXpvuLSsgQ7zvOPRK";
-var _twitterConsumerSecret = "KXDD9YRt58VddSTuYzvoGGGsNK5B5p9ElJ31WNLcZZkR4eVzp9";
+var _twitterConsumerKey = config.TwitterConnector.Consumer_Key;
+var _twitterConsumerSecret = config.TwitterConnector.Consumer_Secret;
+var _environment = config.TwitterConnector.environment;
+var _callbackURL = config.TwitterConnector.callbackURL;
 
 var rabbitmqIP = [];
 if(config.RabbitMQ.ip) {
@@ -77,8 +79,6 @@ function SendRequest(company, tenant, twitteroptions, cb){
 
     logger.debug("DVP-SocialConnector.ReplyTweet Internal method ");
 
-
-
     var obj = {$and:[{company: company, tenant: tenant}, {$or: [{name: twitteroptions.from}, {screen_name: twitteroptions.from}]}]};
 
     Twitter.findOne(obj, function(err, twitter) {
@@ -96,110 +96,114 @@ function SendRequest(company, tenant, twitteroptions, cb){
                     access_token_key: twitter.access_token_key,
                     access_token_secret: twitter.access_token_secret
                 });
+
                 var params = {status: "@"+twitteroptions.to+" "+twitteroptions.text,in_reply_to_status_id:twitteroptions.reply_session};
                 client.post('statuses/update', params, function(error, tweets, response){
                     if (!error) {
                         //console.log(tweets);
 
-                        CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, twitteroptions.text,undefined, tweets.user.id_str,tweets.user,function (isSuccess, result) {
+                        // CreateEngagement("twitter", company, tenant, tweets.user.screen_name, tweets.in_reply_to_screen_name, "outbound", tweets.id_str, twitteroptions.text,undefined, tweets.user.id_str,tweets.user,function (isSuccess, result) {
+                        //
+                        //     if (isSuccess) {
+                        //
+                        //
+                        //         if(twitteroptions.update_comment){
+                        //
+                        //             UpdateComment(tenant, company, twitteroptions.comment,tweets.id_str, function (done) {
+                        //                 if (done) {
+                        //                     logger.info("Update Comment Completed ");
+                        //
+                        //                 } else {
+                        //
+                        //                     logger.error("Update Comment Failed ");
+                        //
+                        //                 }
+                        //
+                        //                 return cb(true);
+                        //             });
+                        //
+                        //         }else {
+                        //
+                        //             if (twitteroptions.reply_session) {
+                        //                 CreateComment('twitter', 'out_tweets', company, tenant, twitteroptions.reply_session, twitteroptions.author, result, function (done) {
+                        //                     if (done) {
+                        //
+                        //                         logger.info("Tweet Reply Success with comment ");
+                        //                         return cb(true);
+                        //                     }
+                        //                     else {
+                        //
+                        //                         logger.error("Comment Creation Failed ");
+                        //                         return cb(false);
+                        //                     }
+                        //
+                        //                 });
+                        //             } else {
+                        //
+                        //                 if (twitteroptions.ticket) {
+                        //
+                        //                     var ticket_type = 'action';
+                        //                     var ticket_priority = 'low';
+                        //                     var ticket_tags = [];
+                        //
+                        //                     if (twitteroptions.ticket_type) {
+                        //                         ticket_type = twitteroptions.ticket_type;
+                        //                     }
+                        //
+                        //                     if (twitteroptions.ticket_priority) {
+                        //                         ticket_priority = twitteroptions.ticket_priority;
+                        //                     }
+                        //
+                        //                     if (twitteroptions.ticket_tags) {
+                        //                         ticket_tags = twitteroptions.ticket_tags;
+                        //                     }
+                        //
+                        //
+                        //                     CreateTicket("twitter", tweets.id_str, result.profile_id, company, tenant, ticket_type, twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
+                        //                         if (done) {
+                        //                             logger.info("Create Ticket Completed ");
+                        //
+                        //                         } else {
+                        //
+                        //                             logger.error("Create Ticket Failed ");
+                        //
+                        //                         }
+                        //
+                        //                         return cb(true);
+                        //                     });
+                        //                 } else {
+                        //
+                        //                     if (twitteroptions.comment) {
+                        //
+                        //                         UpdateComment(tenant, company, twitteroptions.comment, tweets.id_str, function (done) {
+                        //                             if (done) {
+                        //                                 logger.info("Update Comment Completed ");
+                        //
+                        //                             } else {
+                        //
+                        //                                 logger.error("Update Comment Failed ");
+                        //
+                        //                             }
+                        //
+                        //                             return cb(true);
+                        //                         });
+                        //
+                        //                     } else {
+                        //                         return cb(true);
+                        //                     }
+                        //                 }
+                        //             }
+                        //         }
+                        //     } else {
+                        //
+                        //         logger.error("Tweet Reply Failed ");
+                        //         return cb(false);
+                        //
+                        //     }
+                        // })
 
-                            if (isSuccess) {
-
-
-                                if(twitteroptions.update_comment){
-
-                                    UpdateComment(tenant, company, twitteroptions.comment,tweets.id_str, function (done) {
-                                        if (done) {
-                                            logger.info("Update Comment Completed ");
-
-                                        } else {
-
-                                            logger.error("Update Comment Failed ");
-
-                                        }
-
-                                        return cb(true);
-                                    });
-
-                                }else {
-
-                                    if (twitteroptions.reply_session) {
-                                        CreateComment('twitter', 'out_tweets', company, tenant, twitteroptions.reply_session, twitteroptions.author, result, function (done) {
-                                            if (done) {
-
-                                                logger.info("Tweet Reply Success with comment ");
-                                                return cb(true);
-                                            }
-                                            else {
-
-                                                logger.error("Comment Creation Failed ");
-                                                return cb(false);
-                                            }
-
-                                        });
-                                    } else {
-
-                                        if (twitteroptions.ticket) {
-
-                                            var ticket_type = 'action';
-                                            var ticket_priority = 'low';
-                                            var ticket_tags = [];
-
-                                            if (twitteroptions.ticket_type) {
-                                                ticket_type = twitteroptions.ticket_type;
-                                            }
-
-                                            if (twitteroptions.ticket_priority) {
-                                                ticket_priority = twitteroptions.ticket_priority;
-                                            }
-
-                                            if (twitteroptions.ticket_tags) {
-                                                ticket_tags = twitteroptions.ticket_tags;
-                                            }
-
-
-                                            CreateTicket("twitter", tweets.id_str, result.profile_id, company, tenant, ticket_type, twitteroptions.text, twitteroptions.text, ticket_priority, ticket_tags, function (done) {
-                                                if (done) {
-                                                    logger.info("Create Ticket Completed ");
-
-                                                } else {
-
-                                                    logger.error("Create Ticket Failed ");
-
-                                                }
-
-                                                return cb(true);
-                                            });
-                                        } else {
-
-                                            if (twitteroptions.comment) {
-
-                                                UpdateComment(tenant, company, twitteroptions.comment, tweets.id_str, function (done) {
-                                                    if (done) {
-                                                        logger.info("Update Comment Completed ");
-
-                                                    } else {
-
-                                                        logger.error("Update Comment Failed ");
-
-                                                    }
-
-                                                    return cb(true);
-                                                });
-
-                                            } else {
-                                                return cb(true);
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-
-                                logger.error("Tweet Reply Failed ");
-                                return cb(false);
-
-                            }
-                        })
+                        logger.info("Tweet Reply Successful");
+                        return cb(true);
 
                     }else{
 

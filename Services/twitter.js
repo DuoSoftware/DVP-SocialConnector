@@ -20,8 +20,10 @@ var async = require("async");
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
 
-var _twitterConsumerKey = config.TWITTER_KEY;
-var _twitterConsumerSecret = config.TWITTER_SECRET;
+var _twitterConsumerKey = config.TwitterConnector.Consumer_Key;
+var _twitterConsumerSecret = config.TwitterConnector.Consumer_Secret;
+var _environment = config.TwitterConnector.environment;
+var _callbackURL = config.TwitterConnector.callbackURL;
 
 var oauth = require('oauth');
 var serverID = config.Host.ServerID;
@@ -55,8 +57,8 @@ function GetProfile(req, res) {
 
     var accessTokenUrl = 'https://api.twitter.com/oauth/access_token';
     var accessTokenOauth = {
-        consumer_key: config.TWITTER_KEY,
-        consumer_secret: config.TWITTER_SECRET,
+        consumer_key: _twitterConsumerKey,
+        consumer_secret: _twitterConsumerSecret,
         token: req.body.oauth_token,
         verifier: req.body.oauth_verifier
     };
@@ -67,8 +69,8 @@ function GetProfile(req, res) {
         var accessToken = qs.parse(accessToken);
 
         var client = new TwitterClient({
-            consumer_key: config.TWITTER_KEY,
-            consumer_secret: config.TWITTER_SECRET,
+            consumer_key: _twitterConsumerKey,
+            consumer_secret: _twitterConsumerSecret,
             access_token_key: accessToken.oauth_token,
             access_token_secret: accessToken.oauth_token_secret
         });
@@ -129,44 +131,91 @@ function CreateTwitterAccount(req, res) {
         ticket_priority: req.body.ticket_priority,
         created_at: Date.now(),
         updated_at: Date.now(),
+        cron: false,
         status: true
     });
 
+
+    var client = new TwitterClient({
+        consumer_key: _twitterConsumerKey,
+        consumer_secret: _twitterConsumerSecret,
+        access_token_key: twitter.access_token_key,
+        access_token_secret: twitter.access_token_secret
+    });
+    var params = {};
+
+
     twitter.save(function (err, twee) {
         if (err) {
-            jsonString = messageFormatter.FormatMessage(err, "Twitter save failed", false, undefined);
+            jsonString = messageFormatter.FormatMessage(err, "Twitter account save failed", false, undefined);
             res.end(jsonString);
         } else {
 
-            var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, twee._id);
+            client.post('account_activity/all/' + _environment + '/subscriptions', params).then(function (acc) {
 
-            if (validator.isIP(config.LBServer.ip))
-                mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, twee._id);
+                Twitter.findOneAndUpdate({_id: req.body.id}, {subscribed:  true}, function (err, tww) {
+                    if (err) {
 
-            RegisterCronJob(company, tenant, 10, req.body.id, mainServer, function (isSuccess) {
+                        logger.error('Update twitter subscribed status failed', err);
 
-                if (isSuccess) {
-                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, twee);
+                    } else {
+
+                        logger.info('Update twitter subscribed status success');
+                    }
+
+                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter and account subscription saved successfully", true, twee);
                     res.end(jsonString);
-                }
-                else {
-                    jsonString = messageFormatter.FormatMessage(undefined, "Twitter saved but cron failed", false, twee);
-                    Twitter.findOneAndUpdate({_id: twee._id}, {cron: {enable: false}}, function (err, tww) {
-                        if (err) {
+                });
 
-                            logger.error('Update twitter cron status failed', err);
+            }).catch(function (err) {
 
-                        } else {
+                jsonString = messageFormatter.FormatMessage(err, "Twitter callback subscription failed", false, undefined);
+                res.end(jsonString);
 
-                            logger.info('Update twitter cron status success');
-                        }
-                    });
-
-                    res.end(jsonString);
-                }
             });
         }
+
+
     });
+
+    // twitter.save(function (err, twee) {
+    //     if (err) {
+    //         jsonString = messageFormatter.FormatMessage(err, "Twitter save failed", false, undefined);
+    //         res.end(jsonString);
+    //     } else {
+    //
+    //         //var mainServer = format("http://{0}/DVP/API/{1}/Social/Twitter/{2}/directmessages", config.LBServer.ip, config.Host.version, twee._id);
+    //
+    //         //if (validator.isIP(config.LBServer.ip))
+    //         //    mainServer = format("http://{0}:{1}/DVP/API/{2}/Social/Twitter/{3}/directmessages", config.LBServer.ip, config.LBServer.port, config.Host.version, twee._id);
+    //
+    //
+    //
+    //
+    //         // RegisterCronJob(company, tenant, 10, req.body.id, mainServer, function (isSuccess) {
+    //         //
+    //         //     if (isSuccess) {
+    //         //         jsonString = messageFormatter.FormatMessage(undefined, "Twitter and cron saved successfully", true, twee);
+    //         //         res.end(jsonString);
+    //         //     }
+    //         //     else {
+    //         //         jsonString = messageFormatter.FormatMessage(undefined, "Twitter saved but cron failed", false, twee);
+    //         //         Twitter.findOneAndUpdate({_id: twee._id}, {cron: {enable: false}}, function (err, tww) {
+    //         //             if (err) {
+    //         //
+    //         //                 logger.error('Update twitter cron status failed', err);
+    //         //
+    //         //             } else {
+    //         //
+    //         //                 logger.info('Update twitter cron status success');
+    //         //             }
+    //         //         });
+    //         //
+    //         //         res.end(jsonString);
+    //         //     }
+    //         // });
+    //     }
+    // });
 }
 
 function TwitterStartCron(req, res) {
@@ -236,25 +285,63 @@ function DeleteTwitterAccount(req, res) {
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
-    var twitter = Twitter({
+    var twitterx = Twitter({
         status: false,
         updated_at: Date.now(),
-        cron: {enable: false}
     });
 
-
-    Twitter.findOneAndUpdate({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
+    Twitter.findOne({_id: req.params.id, company: company, tenant: tenant}, function (err, twitter) {
         if (err) {
-            jsonString = messageFormatter.FormatMessage(err, "Delete Twitter account failed", false, undefined);
+            jsonString = messageFormatter.FormatMessage(err, "Get Twitter account failed", false, undefined);
         } else {
-            jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, twitter);
+            if (twitter) {
 
-            //company, tenant, id,action,cb
-            StartStopCronJob(company, tenant, req.params.id,'stop', function (isSuccess) {
-                logger.info('DeleteTwitterAccount. stop cron' + isSuccess);
-            });
+
+                var client = new TwitterClient({
+                    consumer_key: _twitterConsumerKey,
+                    consumer_secret: _twitterConsumerSecret,
+                    access_token_key: twitter.access_token_key,
+                    access_token_secret: twitter.access_token_secret
+                });
+                var params = {};
+
+
+                client.delete('account_activity/all/' + _environment + '/subscriptions', params).then(function (acc) {
+                    Twitter.findOneAndUpdate({
+                        _id: req.params.id,
+                        company: company,
+                        tenant: tenant
+                    }, twitterx, function ( twittery) {
+
+                        Twitter.findOneAndUpdate({_id: twitter._id}, {subscribed:  false}, function (err, tww) {
+                            if (err) {
+
+                                logger.error('Update twitter subscribed status failed', err);
+
+                            } else {
+
+                                logger.info('Update twitter subscribed status success');
+                            }
+
+                            jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, twittery);
+                            res.end(jsonString);
+                        });
+                    });
+
+                }).catch(function (err) {
+
+                    jsonString = messageFormatter.FormatMessage(err, "Delete twitter webhooks failed", false, undefined);
+                    res.end(jsonString);
+                });
+
+
+            } else {
+
+                jsonString = messageFormatter.FormatMessage(undefined, "No Twitter account found", false, undefined);
+                res.end(jsonString);
+            }
         }
-        res.end(jsonString);
+
     });
 }
 
@@ -266,19 +353,42 @@ function ActivateTwitterAccount(req, res) {
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
     var jsonString;
-    var twitter = Twitter({
-        status: true,
-        updated_at: Date.now(),
-        cron: {enable: false}
-    });
 
-    Twitter.findOneAndUpdate({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
+    Twitter.findOne({_id: req.params.id, company: company, tenant: tenant}, twitter, function (err, twitter) {
         if (err) {
             jsonString = messageFormatter.FormatMessage(err, "Activate Twitter account failed", false, undefined);
+            res.end(jsonString);
         } else {
-            jsonString = messageFormatter.FormatMessage(undefined, "Activate Twitter account Success", true, twitter);
+
+            if(twitter && twitter.webhook_id){
+
+                var client = new TwitterClient({
+                    consumer_key: _twitterConsumerKey,
+                    consumer_secret: _twitterConsumerSecret,
+                    access_token_key: twitter.access_token_key,
+                    access_token_secret: twitter.access_token_secret
+                });
+                var params = {};
+
+
+                client.put('account_activity/all/'+_environment+'/webhooks/'+twitter.webhook_id, params).then(function(acc){
+                    jsonString = messageFormatter.FormatMessage(undefined, "Activate Twitter webhook Success", true, twitter);
+                    res.end(jsonString);
+
+                }).catch(function(err){
+
+                    jsonString = messageFormatter.FormatMessage(err, "Activate Twitter webhook failed", false, undefined);
+                    res.end(jsonString);
+                });
+
+            }else{
+
+                jsonString = messageFormatter.FormatMessage(undefined, "Activate Twitter account failed No webhook found", false, undefined);
+                res.end(jsonString);
+
+            }
         }
-        res.end(jsonString);
+
     });
 }
 
@@ -456,8 +566,6 @@ function UpdateTwitterAccount(req, res) {
 
 
     var twitter = Twitter({
-
-
         ticket_type: req.body.ticket_type,
         ticket_tags: req.body.ticket_tags,
         ticket_priority: req.body.ticket_priority,
@@ -476,6 +584,133 @@ function UpdateTwitterAccount(req, res) {
 
 
 };
+
+function SubscribeTwitterAccount(req, res) {
+
+
+    logger.debug("DVP-SocialConnector.SubscribeTwitterAccount Internal method ");
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+
+
+    Twitter.findOne({_id: req.params.id, company: company, tenant: tenant}, function (err, twitter) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Get Twitter account failed", false, undefined);
+        } else {
+            if (twitter) {
+
+
+                var client = new TwitterClient({
+                    consumer_key: _twitterConsumerKey,
+                    consumer_secret: _twitterConsumerSecret,
+                    access_token_key: twitter.access_token_key,
+                    access_token_secret: twitter.access_token_secret
+                });
+                var params = {};
+
+
+                client.post('account_activity/all/'+_environment+'/subscriptions', params).then(function(acc){
+
+
+                    Twitter.findOneAndUpdate({_id: twitter._id}, {subscribed:  true}, function (err, tww) {
+                        if (err) {
+
+                            logger.error('Update twitter subscribed status failed', err);
+
+                        } else {
+
+                            logger.info('Update twitter subscribed status success');
+                        }
+
+                        jsonString = messageFormatter.FormatMessage(undefined, "Twitter subscription Success", true, twitter);
+                        res.end(jsonString);
+                    });
+
+
+
+                }).catch(function(err){
+
+                    jsonString = messageFormatter.FormatMessage(err, "Twitter subscription failed", false, undefined);
+                    res.end(jsonString);
+                });
+
+
+
+            } else {
+
+                jsonString = messageFormatter.FormatMessage(undefined, "No Twitter account found", false, undefined);
+                res.end(jsonString);
+            }
+        }
+
+    });
+
+};
+
+function UnSubscribeTwitterAccount(req, res) {
+
+
+    logger.debug("DVP-SocialConnector.UnSubscribeTwitterAccount Internal method ");
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+
+
+    Twitter.findOne({_id: req.params.id, company: company, tenant: tenant}, function (err, twitter) {
+        if (err) {
+            jsonString = messageFormatter.FormatMessage(err, "Get Twitter account failed", false, undefined);
+        } else {
+            if (twitter) {
+
+
+                var client = new TwitterClient({
+                    consumer_key: _twitterConsumerKey,
+                    consumer_secret: _twitterConsumerSecret,
+                    access_token_key: twitter.access_token_key,
+                    access_token_secret: twitter.access_token_secret
+                });
+                var params = {};
+
+
+                client.delete('account_activity/all/'+_environment+'/subscriptions', params).then(function(acc){
+
+                    Twitter.findOneAndUpdate({_id: twitter._id}, {subscribed:  true}, function (err, tww) {
+                        if (err) {
+
+                            logger.error('Update twitter subscribed status failed', err);
+
+                        } else {
+
+                            logger.info('Update twitter subscribed status success');
+                        }
+
+                        jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter subscription Success", true, twitter);
+                        res.end(jsonString);
+                    });
+
+                }).catch(function(err){
+
+                    jsonString = messageFormatter.FormatMessage(err, "Delete user subscription failed", false, undefined);
+                    res.end(jsonString);
+                });
+
+
+
+            } else {
+
+                jsonString = messageFormatter.FormatMessage(undefined, "No Twitter account found", false, undefined);
+                res.end(jsonString);
+            }
+        }
+
+    });
+
+
+};
+
 
 /*function DeleteTwitterAccount(req,res){
 
@@ -1048,7 +1283,6 @@ function ReplyTweet(req, res) {
 
 }
 
-
 function GetTwitterOauthToken(req, res) {
 
 
@@ -1058,8 +1292,8 @@ function GetTwitterOauthToken(req, res) {
 
 
     var requestTokenOauth = {
-        consumer_key: config.TWITTER_KEY,
-        consumer_secret: config.TWITTER_SECRET,
+        consumer_key: _twitterConsumerKey,
+        consumer_secret: _twitterConsumerSecret,
         callback: config.TWITTER_CALLBACK_URL
     };
 
@@ -1083,6 +1317,131 @@ function GetTwitterOauthToken(req, res) {
     });
 }
 
+function CreateTwitterWebhook(req, res) {
+
+    ///////////////////////////////crate a twitter webhook//////////////////
+    var client = new TwitterClient({
+        consumer_key: _twitterConsumerKey,
+        consumer_secret: _twitterConsumerSecret,
+        access_token_key: req.body.access_token_key,
+        access_token_secret: req.body.access_token_secret
+    });
+    var params = {
+        url: encodeURI(_callbackURL)
+    };
+    var jsonString;
+
+    client.post('account_activity/all/' + _environment + '/webhooks', params).then(function (acc) {
+        if (acc && acc.id) {
+
+
+            jsonString = messageFormatter.FormatMessage(undefined, "Twitter and account subscription saved successfully", true, acc);
+            res.end(jsonString);
+
+        } else {
+
+            jsonString = messageFormatter.FormatMessage(undefined, "Twitter subscription save failed", false, undefined);
+            res.end(jsonString);
+        }
+
+    }).catch(function (err) {
+
+        jsonString = messageFormatter.FormatMessage(err, "Twitter callback subscription failed", false, undefined);
+        res.end(jsonString);
+
+    });
+}
+
+function GetTwitterWebhook(req, res) {
+
+    ///////////////////////////////crate a twitter webhook//////////////////
+    var client = new TwitterClient({
+        consumer_key: _twitterConsumerKey,
+        consumer_secret: _twitterConsumerSecret,
+        access_token_key: req.params.access_token_key,
+        access_token_secret: req.params.access_token_secret
+    });
+    var params = {};
+    var jsonString;
+
+    client.get('account_activity/all/' + _environment + '/webhooks', params).then(function (acc) {
+        if (acc) {
+
+
+            jsonString = messageFormatter.FormatMessage(undefined, "Twitter and account subscription get successfully", true, acc);
+            res.end(jsonString);
+
+        } else {
+
+            jsonString = messageFormatter.FormatMessage(undefined, "Twitter subscription get failed", false, undefined);
+            res.end(jsonString);
+        }
+
+    }).catch(function (err) {
+
+        jsonString = messageFormatter.FormatMessage(err, "Twitter callback subscription get failed", false, undefined);
+        res.end(jsonString);
+
+    });
+}
+
+function DeleteTwitterWebhook(req,res) {
+
+    //////////////////find a way to store twitter webhook////////////////////////////
+    var client = new TwitterClient({
+        consumer_key: _twitterConsumerKey,
+        consumer_secret: _twitterConsumerSecret,
+        access_token_key: req.body.access_token_key,
+        access_token_secret: req.body.access_token_secret
+    });
+    var params = {};
+    var jsonString;
+
+    client.delete('account_activity/all/' + _environment + '/webhooks/' + req.params.id, params).then(function (acc) {
+
+        jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter account Success", true, acc);
+        res.end(jsonString);
+
+
+    }).catch(function (err) {
+
+        jsonString = messageFormatter.FormatMessage(err, "Delete twitter webhooks failed", false, undefined);
+        res.end(jsonString);
+    });
+
+}
+
+function UnSubscribeTwitterHook(req, res) {
+
+
+    logger.debug("DVP-SocialConnector.UnSubscribeTwitterHook Internal method ");
+
+    var company = parseInt(req.user.company);
+    var tenant = parseInt(req.user.tenant);
+    var jsonString;
+
+
+    var client = new TwitterClient({
+        consumer_key: _twitterConsumerKey,
+        consumer_secret: _twitterConsumerSecret,
+        access_token_key: req.body.access_token_key,
+        access_token_secret: req.body.access_token_secret
+    });
+    var params = {};
+
+
+    client.delete('account_activity/all/' + _environment + '/subscriptions', params).then(function (acc) {
+        jsonString = messageFormatter.FormatMessage(undefined, "Delete Twitter subscription Success", true, acc);
+        res.end(jsonString);
+
+    }).catch(function (err) {
+
+        jsonString = messageFormatter.FormatMessage(err, "Delete user subscription failed", false, undefined);
+        res.end(jsonString);
+    });
+
+};
+
 
 module.exports.GetProfile = GetProfile;
 module.exports.CreateTwitterAccount = CreateTwitterAccount;
@@ -1097,3 +1456,9 @@ module.exports.GetTwitterAccounts = GetTwitterAccounts;
 module.exports.StreamTwitterMessages = StreamTwitterMessages;
 module.exports.TwitterStartCron = TwitterStartCron;
 module.exports.GetTwitterOauthToken = GetTwitterOauthToken;
+module.exports.SubscribeTwitterAccount = SubscribeTwitterAccount;
+module.exports.UnSubscribeTwitterAccount = UnSubscribeTwitterAccount;
+module.exports.CreateTwitterWebhook = CreateTwitterWebhook;
+module.exports.GetTwitterWebhook = GetTwitterWebhook;
+module.exports.DeleteTwitterWebhook = DeleteTwitterWebhook;
+module.exports.UnSubscribeTwitterHook = UnSubscribeTwitterHook;
