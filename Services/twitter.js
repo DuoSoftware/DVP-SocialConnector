@@ -131,6 +131,7 @@ function CreateTwitterAccount(req, res) {
         ticket_priority: req.body.ticket_priority,
         created_at: Date.now(),
         updated_at: Date.now(),
+        subscribed: true,
         cron: false,
         status: true
     });
