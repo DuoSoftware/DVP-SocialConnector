@@ -102,7 +102,6 @@ module.exports.CreateFacebookAccount = function (req, res) {
 
                     generatePageAccessToken(JSON.parse(body).access_token,profile.fb.pageID,function (err, data) {
 
-                        logger.info(data);
 
                         if(JSON.parse(data) && JSON.parse(data).access_token) {
 
@@ -1264,11 +1263,15 @@ var subscribePageToApp = function (token,pageid, callBack) {
             access_token: token
 
         };
+
+        var formData = {
+            subscribed_fields:['feed','conversations','messages']
+        }
         var options = {
             method: 'POST',
             uri: config.Services.facebookUrl + pageid+"/subscribed_apps",
             qs: propertiesObject,
-            formData:{"subscribed_fields":["feed","conversations","messages"]}
+            formData:formData
             //,
             //headers: {
             //    'Content-Type': 'application/json',
