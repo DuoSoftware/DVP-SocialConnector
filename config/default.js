@@ -145,10 +145,10 @@ module.exports = {
 
     "TwitterConnector": {
         //account_activity/all/:env_name/webhooks
-        "Consumer_Key":"",
-        "Consumer_Secret": "",
+        "Consumer_Key":"0mIwMA87yMxmpxMxLBY5vWSC4",
+        "Consumer_Secret": "DnOxbL1BiWYigV67ifCu8VCWIZTdpE5jivbHS7DhJgy2nucERU",
         "environment": "development",
-        "callbackURL": ""
+        "callbackURL": "https://twitterreceiver.app.veery.cloud/twitter/feeds"
     }
 
 };
