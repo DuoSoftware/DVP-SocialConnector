@@ -73,7 +73,7 @@ module.exports.GetFacebookAccounts = function (req, res) {
 
 module.exports.CreateFacebookAccount = function (req, res) {
     logger.info("DVP-SocialConnector.CreateFacebookAccount Internal method ");
-
+    console.log("Ready to Create Fb Profile");
     var profile = req.body;
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
@@ -1258,20 +1258,20 @@ var generatePageAccessToken = function (token,pageid, callBack) {
 
 var subscribePageToApp = function (token,pageid, callBack) {
     try {
+
+        console.log("Ready to Subscribe");
         var propertiesObject = {
 
-            access_token: token
+            access_token: token,
+            subscribed_fields:['feed','conversations','messages']
 
         };
 
-        var formData = {
-            subscribed_fields:['feed','conversations','messages']
-        }
+
         var options = {
             method: 'POST',
             uri: config.Services.facebookUrl + pageid+"/subscribed_apps",
-            qs: propertiesObject,
-            formData:formData
+            qs: propertiesObject
             //,
             //headers: {
             //    'Content-Type': 'application/json',
