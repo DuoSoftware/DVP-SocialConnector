@@ -1190,6 +1190,7 @@ var generateLongLivedToken = function (token, callBack) {
             else {
 
                 console.log(response.statusCode);
+                console.log(response);
                 if (response.statusCode == 200) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
                     logger.debug("Get  Long Lived Token :" + jsonString);
