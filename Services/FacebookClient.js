@@ -1191,7 +1191,7 @@ var generateLongLivedToken = function (token, callBack) {
 
                 if (response.statusCode == 200) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
-                    logger.error("Get  Long Lived Token :" + jsonString);
+                    logger.debug("Get  Long Lived Token :" + jsonString);
                     callBack(undefined, body);
                 }
                 else {
@@ -1265,7 +1265,8 @@ var subscribePageToApp = function (token,pageid, callBack) {
         var options = {
             method: 'POST',
             uri: config.Services.facebookUrl + pageid+"/subscribed_apps",
-            qs: propertiesObject
+            qs: propertiesObject,
+            formData:{"subscribed_fields":["feed","conversations","messages"]}
             //,
             //headers: {
             //    'Content-Type': 'application/json',
