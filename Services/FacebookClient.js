@@ -103,7 +103,13 @@ module.exports.CreateFacebookAccount = function (req, res) {
                     generatePageAccessToken(JSON.parse(body).access_token,profile.fb.pageID,function (err, data) {
 
 
-                        if(JSON.parse(data) && JSON.parse(data).access_token) {
+                        if(err)
+                        {
+                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                            res.end(jsonString);
+                        }
+
+                        else if(data && JSON.parse(data) && JSON.parse(data).access_token) {
 
                             var page_access_token = JSON.parse(data).access_token;
 
@@ -149,7 +155,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
 
                         }else{
 
-                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                            jsonString = messageFormatter.FormatMessage(new Error("Page Access failed"), "EXCEPTION", false, undefined);
                             res.end(jsonString);
                         }
                     });
@@ -1188,8 +1194,7 @@ var generateLongLivedToken = function (token, callBack) {
             }
             else {
 
-                console.log(response.statusCode);
-                console.log(response);
+
                 if (response.statusCode == 200) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
                     logger.debug("Get  Long Lived Token :" + jsonString);
@@ -1237,12 +1242,12 @@ var generatePageAccessToken = function (token,pageid, callBack) {
 
                 if (response.statusCode == 200) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
-                    logger.error("Get  Long Lived Token :" + jsonString);
+                    logger.error("Get  PageAccessToken:" + jsonString);
                     callBack(undefined, body);
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token [1208]: " + jsonString);
+                    logger.error("Fail to get  PageAccessToken  [1208]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }

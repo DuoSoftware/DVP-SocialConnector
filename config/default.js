@@ -120,7 +120,7 @@ module.exports = {
         "ardsServicePort": "8831",
         "ardsServiceVersion": "1.0.0.0",
 
-        "facebookUrl": "https://graph.facebook.com/v2.8/",
+        "facebookUrl": "https://graph.facebook.com/v3.2/",
 
         "ruleserviceurl": "",
         "ruleserviceport": "8888",
@@ -137,8 +137,8 @@ module.exports = {
     },
 
     "SocialConnector": {
-        "fb_client_id": "",
-        "fb_client_secret": "",
+        "fb_client_id": "341368403128273",
+        "fb_client_secret": "4d6758e7cd4334d38f8c1dce09d25db7",
         "owner_id": ""
     },
 
