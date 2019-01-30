@@ -59,25 +59,6 @@ module.exports = {
         "vhost":"SYS_RABBITMQ_VHOST"
     },
 
-	"SMSServer":{
-		
-		"ip": "SYS_SMSSERVER_HOST",
-		"port": "SYS_SMSSERVER_PORT",
-		"password": "SYS_SMSSERVER_PASSWORD",
-		"user": "SYS_SMSSERVER_USER"
-
-	},
-
-    "SMPPClient":{
-
-        "ip":"SYS_SMPP_HOST",
-        "port":"SYS_SMPP_PORT",
-        "password":"SYS_SMPP_PASSWORD",
-        "user":"SYS_SMPP_USER"
-
-    },
-
-
 
 
     "Host":
@@ -86,8 +67,6 @@ module.exports = {
         "domain": "HOST_NAME",
         "port": "HOST_SOCIALCONNECTOR_PORT",
         "version": "HOST_VERSION",
-        "smsQueueName": "SMS_QUEUE_NAME",
-        "smsmode": "SMS_MODE",
         'twitterQueueName': "TWITTER_QUEUE_NAME",
         'facebookQueueName': "FACEBOOK_QUEUE_NAME"
 
@@ -122,7 +101,12 @@ module.exports = {
 		"ardsServicePort": "SYS_ARDSLITESERVICE_PORT",
 		"ardsServiceVersion": "SYS_ARDSLITESERVICE_VERSION",
 
-		"facebookUrl" : "SYS_FACEBOOK_URL"
+		"facebookUrl" : "SYS_FACEBOOK_URL",
+
+        "twitterCallbackHost": "SYS_TWITTERCALLBACK_HOST",
+        "twitterCallbackPort": "SYS_TWITTERCALLBACK_PORT",
+        "twitterCallbackVersion": "SYS_TWITTERCALLBACK_VERSION"
+
 
     },
 	
@@ -131,13 +115,20 @@ module.exports = {
     //"fb_client_id":"825442624259571",
     //"fb_client_secret":"85eab7232db0c38abd7d04baa358382f",
     //"owner_id":"124278164680278,124278164680845"
-
-
     "fb_client_id":"SYS_FBCLIENT_ID",
     "fb_client_secret":"SYS_FBCLIENT_KEY",
     "owner_id":"SYS_FBOWNER_ID"
 
-  }
+  },
+
+    "TwitterConnector": {
+        //account_activity/all/:env_name/webhooks
+        "Consumer_Key":"TWITTER_CONSUMER_KEY",
+        "Consumer_Secret": "TWITTER_CONSUMER_SECRET",
+        "environment": "TWITTER_ENVIRONMENT",
+        "callbackURL": "TWITTER_CALLBACKURL"
+    }
+
 };
 
 //NODE_CONFIG_DIR

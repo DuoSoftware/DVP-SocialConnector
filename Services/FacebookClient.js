@@ -73,7 +73,7 @@ module.exports.GetFacebookAccounts = function (req, res) {
 
 module.exports.CreateFacebookAccount = function (req, res) {
     logger.info("DVP-SocialConnector.CreateFacebookAccount Internal method ");
-
+    console.log("Ready to Create Fb Profile");
     var profile = req.body;
     var company = parseInt(req.user.company);
     var tenant = parseInt(req.user.tenant);
@@ -102,9 +102,14 @@ module.exports.CreateFacebookAccount = function (req, res) {
 
                     generatePageAccessToken(JSON.parse(body).access_token,profile.fb.pageID,function (err, data) {
 
-                        logger.info(data);
 
-                        if(JSON.parse(data) && JSON.parse(data).access_token) {
+                        if(err)
+                        {
+                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                            res.end(jsonString);
+                        }
+
+                        else if(data && JSON.parse(data) && JSON.parse(data).access_token) {
 
                             var page_access_token = JSON.parse(data).access_token;
 
@@ -150,7 +155,7 @@ module.exports.CreateFacebookAccount = function (req, res) {
 
                         }else{
 
-                            jsonString = messageFormatter.FormatMessage(err, "EXCEPTION", false, undefined);
+                            jsonString = messageFormatter.FormatMessage(new Error("Page Access failed"), "EXCEPTION", false, undefined);
                             res.end(jsonString);
                         }
                     });
@@ -1189,9 +1194,10 @@ var generateLongLivedToken = function (token, callBack) {
             }
             else {
 
+
                 if (response.statusCode == 200) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
-                    logger.error("Get  Long Lived Token :" + jsonString);
+                    logger.debug("Get  Long Lived Token :" + jsonString);
                     callBack(undefined, body);
                 }
                 else {
@@ -1236,12 +1242,12 @@ var generatePageAccessToken = function (token,pageid, callBack) {
 
                 if (response.statusCode == 200) {
                     jsonString = messageFormatter.FormatMessage(undefined, "Successfully Post.", true, undefined);
-                    logger.error("Get  Long Lived Token :" + jsonString);
+                    logger.error("Get  PageAccessToken:" + jsonString);
                     callBack(undefined, body);
                 }
                 else {
                     jsonString = messageFormatter.FormatMessage(body, "Fail To Post.", false, undefined);
-                    logger.error("Fail to get  Long Lived Token [1208]: " + jsonString);
+                    logger.error("Fail to get  PageAccessToken  [1208]: " + jsonString);
                     callBack(new Error(jsonString), undefined);
                 }
             }
@@ -1257,11 +1263,16 @@ var generatePageAccessToken = function (token,pageid, callBack) {
 
 var subscribePageToApp = function (token,pageid, callBack) {
     try {
+
+        console.log("Ready to Subscribe");
         var propertiesObject = {
 
-            access_token: token
+            access_token: token,
+            subscribed_fields:['feed','conversations','messages']
 
         };
+
+
         var options = {
             method: 'POST',
             uri: config.Services.facebookUrl + pageid+"/subscribed_apps",
